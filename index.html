@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O 올림픽 체육대회</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script type="module">
+  // Firebase Realtime Database (실시간 다중 기기 동기화)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue, off, goOffline, goOnline, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  window.__FB = { initializeApp, getDatabase, ref, set, onValue, off, goOffline, goOnline, onDisconnect };
+  window.dispatchEvent(new Event("firebase-ready"));
+</script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+  /* ============================= 디자인 토큰 ============================= */
+  :root {
+    --c-deep: #06182b;
+    --c-navy: #0a2540;
+    --c-ocean: #0066b3;
+    --c-blue: #2098d6;
+    --c-teal: #00b4b4;
+    --c-aqua: #4dd0e1;
+    --c-foam: #e0f7fa;
+    --c-white: #ffffff;
+    --c-gold: #fbbf24;
+    --c-silver: #cbd5e1;
+    --c-bronze: #d97706;
+    --c-text: #0f172a;
+    --c-mute: #64748b;
+    --c-border: rgba(255,255,255,0.18);
+    --c-glass: rgba(255,255,255,0.08);
+    --c-glass-strong: rgba(255,255,255,0.15);
+    --c-danger: #ef4444;
+    --c-success: #10b981;
+    --shadow-lg: 0 20px 50px -15px rgba(0,30,60,0.5);
+    --shadow-md: 0 8px 24px -8px rgba(0,30,60,0.3);
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 24px;
+    --r-xl: 32px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; }
+  body {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(180deg, #06182b 0%, #0a2540 30%, #0e3c6b 70%, #0066b3 100%);
+    background-attachment: fixed;
+    color: var(--c-white);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
+  }
+
+  /* 배경 파도 애니메이션 */
+  .ocean-bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    overflow: hidden;
+  }
+  .ocean-bg::before, .ocean-bg::after {
+    content: ""; position: absolute; left: -50%; right: -50%;
+    height: 240px; bottom: -80px;
+    background: radial-gradient(ellipse at center, rgba(77,208,225,0.18), transparent 60%);
+    animation: waveFloat 14s ease-in-out infinite;
+  }
+  .ocean-bg::after {
+    bottom: -120px; height: 320px;
+    background: radial-gradient(ellipse at center, rgba(0,180,180,0.12), transparent 65%);
+    animation-duration: 22s; animation-direction: reverse;
+  }
+  @keyframes waveFloat {
+    0%, 100% { transform: translateX(0) scaleY(1); }
+    50% { transform: translateX(40px) scaleY(1.08); }
+  }
+  .bubbles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .bubble {
+    position: absolute; bottom: -20px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), rgba(77,208,225,0.1));
+    animation: bubbleUp linear infinite;
+  }
+  @keyframes bubbleUp {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-105vh) translateX(40px); opacity: 0; }
+  }
+
+  /* ============================= 레이아웃 ============================= */
+  .app {
+    position: relative; z-index: 1;
+    max-width: 1280px; margin: 0 auto;
+    padding: 28px 24px 80px;
+  }
+
+  /* ============================= 헤더 ============================= */
+  .hero {
+    text-align: center;
+    padding: 36px 16px 28px;
+    position: relative;
+  }
+  .hero-rings {
+    display: flex; justify-content: center; gap: 4px;
+    margin-bottom: 14px;
+  }
+  .hero-rings .ring {
+    width: 28px; height: 28px; border: 3px solid; border-radius: 50%;
+    background: transparent;
+  }
+  .hero-rings .r1 { border-color: #4dd0e1; }
+  .hero-rings .r2 { border-color: #fbbf24; }
+  .hero-rings .r3 { border-color: #ffffff; }
+  .hero-rings .r4 { border-color: #34d399; }
+  .hero-rings .r5 { border-color: #f87171; }
+  .hero h1 {
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-size: clamp(40px, 7vw, 76px);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    background: linear-gradient(135deg, #ffffff 0%, #4dd0e1 50%, #fbbf24 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 20px rgba(77,208,225,0.25));
+    margin-bottom: 8px;
+  }
+  .hero p {
+    font-size: clamp(13px, 1.4vw, 16px);
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.05em;
+    font-weight: 300;
+  }
+  .hero .clock {
+    margin-top: 12px;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    background: var(--c-glass);
+    border: 1px solid var(--c-border);
+    border-radius: 100px;
+    font-size: 13px; color: rgba(255,255,255,0.75);
+    backdrop-filter: blur(10px);
+  }
+  .clock .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 12px #10b981;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
+  /* 동기화 상태 배지 */
+  .sync-badge {
+    margin-top: 10px;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+    backdrop-filter: blur(10px);
+    border: 1px solid;
+    transition: all 0.3s;
+  }
+  .sync-badge .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .sync-badge.off { background: rgba(148,163,184,0.12); border-color: rgba(148,163,184,0.3); color: #cbd5e1; }
+  .sync-badge.off .dot { background: #94a3b8; box-shadow: 0 0 8px #94a3b8; animation: none; }
+  .sync-badge.ing { background: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.4); color: #fde68a; }
+  .sync-badge.ing .dot { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
+  .sync-badge.ok  { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #86efac; }
+  .sync-badge.ok .dot { background: #10b981; box-shadow: 0 0 12px #10b981; }
+  .sync-badge.err { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+  .sync-badge.err .dot { background: #ef4444; box-shadow: 0 0 8px #ef4444; animation: none; }
+  .viewer-mode .fab { display: none !important; }
+  .viewer-mode .hero h1::after {
+    content: "  · 보기 전용";
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px; font-weight: 400;
+    color: rgba(255,255,255,0.5);
+    -webkit-text-fill-color: rgba(255,255,255,0.5);
+    background: none;
+    letter-spacing: 0.05em;
+  }
+
+  /* QR 코드 */
+  .qr-box {
+    display: flex; flex-direction: column; align-items: center;
+    background: #fff; border-radius: 12px; padding: 16px; margin: 12px 0;
+  }
+  .qr-box canvas { display: block; }
+  .share-url {
+    word-break: break-all;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.8);
+    margin: 8px 0;
+    max-height: 80px; overflow-y: auto;
+  }
+  .step-list { counter-reset: step; padding: 0; list-style: none; margin: 0; }
+  .step-list li {
+    counter-increment: step;
+    position: relative;
+    padding: 10px 0 10px 36px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.85);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 10px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: linear-gradient(135deg, #2098d6, #00b4b4);
+    color: #fff; font-weight: 700; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-list li code, .step-list li b {
+    background: rgba(77,208,225,0.15);
+    color: #4dd0e1;
+    padding: 1px 6px; border-radius: 4px;
+    font-size: 12px;
+  }
+  .step-list li a {
+    color: #4dd0e1; text-decoration: underline;
+  }
+  textarea.input {
+    min-height: 140px;
+    font-family: monospace;
+    font-size: 12px;
+    resize: vertical;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.6; }
+  }
+
+  /* ============================= 학년 탭 ============================= */
+  .grade-tabs {
+    display: flex; justify-content: center; gap: 8px;
+    margin: 28px auto 24px;
+    background: var(--c-glass);
+    border: 1px solid var(--c-border);
+    border-radius: 100px;
+    padding: 6px;
+    width: fit-content;
+    backdrop-filter: blur(20px);
+    flex-wrap: wrap;
+  }
+  .grade-tabs button {
+    background: transparent; border: none; color: rgba(255,255,255,0.7);
+    padding: 12px 26px; border-radius: 100px; cursor: pointer;
+    font-size: 15px; font-weight: 600;
+    font-family: inherit;
+    transition: all 0.3s cubic-bezier(.4,0,.2,1);
+    white-space: nowrap;
+  }
+  .grade-tabs button:hover { color: #fff; background: rgba(255,255,255,0.05); }
+  .grade-tabs button.active {
+    background: linear-gradient(135deg, #2098d6, #00b4b4);
+    color: #fff;
+    box-shadow: 0 8px 24px -6px rgba(0,180,180,0.5);
+  }
+
+  /* ============================= 순위 카드 ============================= */
+  .ranking-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .class-card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    padding: 20px 22px;
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-md);
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1), box-shadow 0.3s;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .class-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .class-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #2098d6, #4dd0e1);
+  }
+  .class-card.rank-1 {
+    background: linear-gradient(135deg, rgba(251,191,36,0.22), rgba(251,191,36,0.06));
+    border-color: rgba(251,191,36,0.4);
+  }
+  .class-card.rank-1::before { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+  .class-card.rank-2 {
+    background: linear-gradient(135deg, rgba(203,213,225,0.22), rgba(203,213,225,0.06));
+    border-color: rgba(203,213,225,0.4);
+  }
+  .class-card.rank-2::before { background: linear-gradient(90deg, #e2e8f0, #94a3b8); }
+  .class-card.rank-3 {
+    background: linear-gradient(135deg, rgba(217,119,6,0.22), rgba(217,119,6,0.06));
+    border-color: rgba(217,119,6,0.4);
+  }
+  .class-card.rank-3::before { background: linear-gradient(90deg, #d97706, #b45309); }
+
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .rank-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 48px; height: 48px;
+    border-radius: 14px;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 22px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    padding: 0 12px;
+  }
+  .rank-1 .rank-badge { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #422a02; }
+  .rank-2 .rank-badge { background: linear-gradient(135deg, #f1f5f9, #94a3b8); color: #1e293b; }
+  .rank-3 .rank-badge { background: linear-gradient(135deg, #fbbf24, #d97706); color: #422a02; }
+  .rank-medal { font-size: 28px; line-height: 1; }
+  .class-title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .class-grade { font-size: 11px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  .total-score {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 56px;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #ffffff, #4dd0e1);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .total-label { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px; letter-spacing: 0.15em; }
+
+  .event-bar {
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px dashed rgba(255,255,255,0.15);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    font-size: 12px;
+  }
+  .event-bar .ev {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 8px; border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+  }
+  .event-bar .ev .nm { color: rgba(255,255,255,0.65); }
+  .event-bar .ev .vl { color: #fff; font-weight: 600; }
+  .event-bar .ev.no { opacity: 0.4; }
+
+  /* ============================= 종목별 보드 ============================= */
+  .events-section {
+    margin-top: 36px;
+  }
+  .section-title {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 22px; font-weight: 700;
+    margin-bottom: 16px;
+    color: #fff;
+  }
+  .section-title::before {
+    content: ""; width: 6px; height: 24px;
+    background: linear-gradient(180deg, #4dd0e1, #2098d6);
+    border-radius: 3px;
+  }
+  .events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .event-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    padding: 18px 20px;
+    backdrop-filter: blur(20px);
+  }
+  .event-card-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .event-name { font-size: 17px; font-weight: 700; color: #fff; }
+  .event-meta { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.05em; margin-top: 2px; }
+  .event-list { display: flex; flex-direction: column; gap: 4px; }
+  .event-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 10px; border-radius: 8px;
+    font-size: 13px;
+    transition: background 0.2s;
+  }
+  .event-row:hover { background: rgba(255,255,255,0.05); }
+  .event-row.no { opacity: 0.35; }
+  .event-row .left { display: flex; align-items: center; gap: 10px; }
+  .event-row .rk {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px; border-radius: 6px;
+    font-size: 11px; font-weight: 700;
+    background: rgba(255,255,255,0.1);
+  }
+  .event-row.r1 .rk { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #422a02; }
+  .event-row.r2 .rk { background: linear-gradient(135deg, #e2e8f0, #94a3b8); color: #1e293b; }
+  .event-row.r3 .rk { background: linear-gradient(135deg, #fbbf24, #d97706); color: #422a02; }
+  .event-row .nm { color: rgba(255,255,255,0.85); font-weight: 500; }
+  .event-row .pt { color: #4dd0e1; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* ============================= 플로팅 버튼 ============================= */
+  .fab {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 60px; height: 60px;
+    border-radius: 50%; border: none;
+    background: linear-gradient(135deg, #2098d6, #00b4b4);
+    color: #fff; font-size: 24px; cursor: pointer;
+    box-shadow: 0 12px 32px -8px rgba(0,180,180,0.6), 0 0 0 0 rgba(77,208,225,0.5);
+    z-index: 50;
+    transition: transform 0.2s, box-shadow 0.3s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fab:hover { transform: scale(1.08); box-shadow: 0 16px 40px -8px rgba(0,180,180,0.7); }
+  .fab svg { width: 26px; height: 26px; }
+
+  /* ============================= 모달 ============================= */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(6,24,43,0.7);
+    backdrop-filter: blur(10px);
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease-out;
+  }
+  .modal-backdrop.open { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: linear-gradient(180deg, #0a2540, #0e3c6b);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-lg);
+    width: 100%; max-width: 920px;
+    max-height: 90vh; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.3s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal-head {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--c-border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-head h2 { font-size: 20px; font-weight: 700; }
+  .modal-close {
+    background: rgba(255,255,255,0.08); border: none;
+    width: 36px; height: 36px; border-radius: 50%;
+    color: #fff; cursor: pointer; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.18); }
+  .modal-body {
+    flex: 1; overflow-y: auto;
+    padding: 24px;
+  }
+
+  /* ============================= 로그인 화면 ============================= */
+  .login-box { text-align: center; padding: 16px 20px 28px; max-width: 380px; margin: 0 auto; }
+  .login-box .icon {
+    width: 64px; height: 64px; margin: 0 auto 16px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #2098d6, #00b4b4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+  }
+  .login-box h3 { font-size: 22px; margin-bottom: 8px; }
+  .login-box p { color: rgba(255,255,255,0.6); margin-bottom: 22px; font-size: 14px; }
+  .input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-sm);
+    color: #fff;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-family: inherit;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .input:focus { outline: none; border-color: #4dd0e1; background: rgba(255,255,255,0.1); }
+
+  .btn {
+    background: linear-gradient(135deg, #2098d6, #00b4b4);
+    border: none; color: #fff;
+    padding: 14px 24px; border-radius: var(--r-sm);
+    font-size: 15px; font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px -8px rgba(0,180,180,0.5); }
+  .btn:active { transform: translateY(0); }
+  .btn.ghost { background: rgba(255,255,255,0.08); }
+  .btn.ghost:hover { background: rgba(255,255,255,0.15); }
+  .btn.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .btn.full { width: 100%; }
+  .btn:disabled { filter: grayscale(1) opacity(0.5); cursor: not-allowed; }
+
+  /* ============================= 관리자 ============================= */
+  .admin-tabs {
+    display: flex; gap: 4px; margin-bottom: 18px;
+    background: rgba(0,0,0,0.2); padding: 4px; border-radius: 12px;
+    overflow-x: auto;
+  }
+  .admin-tabs button {
+    flex: 1; min-width: max-content;
+    background: transparent; border: none; color: rgba(255,255,255,0.7);
+    padding: 10px 14px; border-radius: 10px; cursor: pointer;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .admin-tabs button.active {
+    background: rgba(255,255,255,0.12); color: #fff;
+  }
+
+  .event-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .event-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--c-border);
+    color: #fff;
+    padding: 12px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px; font-weight: 600;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .event-pill:hover { background: rgba(255,255,255,0.12); }
+  .event-pill.active {
+    background: linear-gradient(135deg, #2098d6, #00b4b4);
+    border-color: transparent;
+    box-shadow: 0 6px 20px -8px rgba(0,180,180,0.6);
+  }
+
+  .grade-picker { display: flex; gap: 6px; margin-bottom: 16px; }
+  .grade-picker button {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--c-border);
+    color: #fff;
+    padding: 8px;
+    border-radius: 8px;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .grade-picker button.active {
+    background: linear-gradient(135deg, #2098d6, #00b4b4);
+    border-color: transparent;
+  }
+
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .score-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+  }
+  .score-row .label { font-weight: 600; }
+  .score-row select, .score-row input {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--c-border);
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-family: inherit; font-size: 13px;
+    min-width: 90px;
+  }
+  .score-row select:focus, .score-row input:focus {
+    outline: none; border-color: #4dd0e1;
+  }
+  .score-row .points {
+    font-size: 12px; color: #4dd0e1; font-weight: 700;
+    min-width: 50px; text-align: right;
+  }
+
+  /* 줄다리기 토글 그리드 */
+  .toggle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+  }
+  .toggle-pill {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--c-border);
+    color: #fff;
+    padding: 12px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .toggle-pill:hover { background: rgba(255,255,255,0.1); }
+  .toggle-pill.won {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: transparent;
+    box-shadow: 0 6px 20px -8px rgba(16,185,129,0.6);
+  }
+  .toggle-pill.won::after { content: " · +30점"; font-size: 11px; opacity: 0.9; }
+
+  .form-actions {
+    display: flex; gap: 10px; margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .helper {
+    background: rgba(77,208,225,0.08);
+    border: 1px solid rgba(77,208,225,0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .helper b { color: #4dd0e1; }
+
+  .toast {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+    background: rgba(16,185,129,0.95);
+    color: #fff;
+    padding: 12px 22px; border-radius: 100px;
+    font-weight: 600; font-size: 14px;
+    box-shadow: 0 12px 32px -8px rgba(16,185,129,0.6);
+    z-index: 200;
+    animation: toastIn 0.3s ease-out;
+  }
+  .toast.danger { background: rgba(239,68,68,0.95); box-shadow: 0 12px 32px -8px rgba(239,68,68,0.6); }
+  @keyframes toastIn {
+    from { transform: translate(-50%, 20px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+  }
+
+  /* 응원/질서 슬라이더 항목 */
+  .cheer-grid { display: grid; gap: 10px; }
+  .cheer-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .cheer-class { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .cheer-fields {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+  }
+  .cheer-fields label {
+    display: flex; flex-direction: column; gap: 4px;
+    font-size: 11px; color: rgba(255,255,255,0.65);
+  }
+  .cheer-fields input {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--c-border);
+    color: #fff;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-family: inherit; font-size: 13px;
+    width: 100%;
+  }
+  .cheer-fields input:focus { outline: none; border-color: #4dd0e1; }
+  .cheer-total {
+    text-align: right; font-size: 18px; font-weight: 700;
+    color: #4dd0e1; margin-top: 8px;
+  }
+
+  /* 데이터 관리 */
+  .data-section {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+  .data-section h4 {
+    font-size: 15px; margin-bottom: 6px;
+  }
+  .data-section p {
+    font-size: 13px; color: rgba(255,255,255,0.65);
+    margin-bottom: 12px;
+  }
+
+  /* 빈 상태 */
+  .empty {
+    text-align: center; padding: 60px 20px;
+    color: rgba(255,255,255,0.5);
+  }
+  .empty .icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* 반응형 */
+  @media (max-width: 640px) {
+    .app { padding: 16px 14px 100px; }
+    .hero { padding: 20px 8px 16px; }
+    .grade-tabs { width: 100%; }
+    .grade-tabs button { padding: 10px 16px; font-size: 13px; flex: 1; }
+    .ranking-grid { grid-template-columns: 1fr; }
+    .events-grid { grid-template-columns: 1fr; }
+    .total-score { font-size: 44px; }
+    .cheer-fields { grid-template-columns: repeat(2, 1fr); }
+    .modal { max-height: 95vh; }
+    .fab { bottom: 16px; right: 16px; width: 54px; height: 54px; }
+  }
+</style>
+</head>
+<body>
+  <div class="ocean-bg"></div>
+  <div class="bubbles" id="bubbles"></div>
+
+  <main class="app">
+    <!-- 헤더 -->
+    <section class="hero">
+      <div class="hero-rings">
+        <span class="ring r1"></span>
+        <span class="ring r2"></span>
+        <span class="ring r3"></span>
+        <span class="ring r4"></span>
+        <span class="ring r5"></span>
+      </div>
+      <h1>O 올림픽 체육대회</h1>
+      <p>OCEAN OLYMPICS · REAL-TIME SCOREBOARD</p>
+      <div class="clock">
+        <span class="live-dot"></span>
+        <span id="clock-text">--</span>
+      </div>
+      <div style="margin-top:6px;">
+        <span class="sync-badge off" id="syncBadge">
+          <span class="dot"></span>
+          <span id="syncBadgeText">오프라인 (단일 기기)</span>
+        </span>
+      </div>
+    </section>
+
+    <!-- 학년 탭 -->
+    <div class="grade-tabs" id="gradeTabs">
+      <button data-grade="1" class="active">1학년</button>
+      <button data-grade="2">2학년</button>
+      <button data-grade="3">3학년</button>
+      <button data-grade="all">전체 종합</button>
+    </div>
+
+    <!-- 메인 순위 보드 -->
+    <section>
+      <h2 class="section-title">학급 종합 순위</h2>
+      <div class="ranking-grid" id="rankingGrid"></div>
+    </section>
+
+    <!-- 종목별 결과 -->
+    <section class="events-section">
+      <h2 class="section-title">종목별 현황</h2>
+      <div class="events-grid" id="eventsGrid"></div>
+    </section>
+  </main>
+
+  <!-- 관리자 진입 버튼 -->
+  <button class="fab" id="adminFab" title="관리자 모드" aria-label="관리자 모드">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+    </svg>
+  </button>
+
+  <!-- 모달 -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="modalTitle">관리자 모드</h2>
+        <button class="modal-close" id="modalClose">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+  /* ============================================================
+   * 상수 정의 (PDF 채점 기준 반영)
+   * ============================================================ */
+  const CLASSES_PER_GRADE = 10;
+  const ADMIN_PASSWORD_DEFAULT = "ocean2026"; // 사용자가 변경 가능
+
+  // PDF 기반 종목 정의
+  const EVENTS = [
+    { id: "wave",   name: "인간 파도타기", grades: [1], type: "rank",
+      scoring: [100,90,80,70,60,60,60,60,60,60] },
+    { id: "eye",    name: "태풍의 눈",     grades: [2], type: "rank",
+      scoring: [100,90,80,70,60,60,60,60,60,60] },
+    { id: "earth",  name: "지구를 굴려라", grades: [3], type: "rank",
+      scoring: [100,90,80,70,60,60,60,60,60,60] },
+    { id: "rope",   name: "8자 줄넘기",    grades: [1,2,3], type: "rank",
+      scoring: [80,70,60,50,40,40,40,40,40,40] },
+    { id: "tug",    name: "이벤트 줄다리기", grades: [1,2,3], type: "win",
+      winPoints: 30 },
+    { id: "fivelegs", name: "4인 5각 달리기", grades: [1,2,3], type: "rank",
+      scoring: [100,90,80,70,60,60,60,60,60,60] },
+    { id: "relay",  name: "이어달리기",     grades: [1,2,3], type: "rank",
+      scoring: [80,70,60,50,40,40,40,40,40,40] },
+    { id: "cheer",  name: "응원 · 질서",    grades: [1,2,3], type: "cheer",
+      criteria: [
+        { key: "coop",     label: "협동심",       max: 20 },
+        { key: "seat",     label: "지정 좌석",    max: 20 },
+        { key: "support",  label: "응원 준비",    max: 10 },
+        { key: "clean",    label: "주변 정리",    max: 30 },
+        { key: "gather",   label: "집합 신속도",  max: 20 },
+      ] },
+  ];
+
+  const STORAGE_KEY = "ocean_olympics_v1";
+  const PASSWORD_KEY = "ocean_olympics_password";
+  const SYNC_KEY = "ocean_olympics_sync_v1";
+
+  /* ============================================================
+   * 데이터 모델
+   *
+   * state.scores 구조:
+   * {
+   *   "wave": { 1: { 1: 1, 2: 3, 3: 5, ...10: } },  // event -> grade -> class -> rank(1~)
+   *   "rope": { 1: {...}, 2: {...}, 3: {...} },
+   *   "tug":  { 1: { 1: true, 3: true } },           // 줄다리기: 승리 학급 마크
+   *   "cheer":{ 1: { 1: { coop: 18, seat: 20, ... }, ... } }
+   * }
+   * ============================================================ */
+  let state = loadState();
+
+  function blankState() {
+    const scores = {};
+    EVENTS.forEach(ev => {
+      scores[ev.id] = {};
+      ev.grades.forEach(g => { scores[ev.id][g] = {}; });
+    });
+    return { scores, updatedAt: null };
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return blankState();
+      const parsed = JSON.parse(raw);
+      // 신규 종목 추가 시 보정
+      const base = blankState();
+      EVENTS.forEach(ev => {
+        if (parsed.scores[ev.id]) {
+          ev.grades.forEach(g => {
+            base.scores[ev.id][g] = parsed.scores[ev.id][g] || {};
+          });
+        }
+      });
+      base.updatedAt = parsed.updatedAt || null;
+      return base;
+    } catch(e) {
+      console.warn("저장 데이터 로드 실패, 초기화", e);
+      return blankState();
+    }
+  }
+
+  function saveState() {
+    state.updatedAt = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    pushToFirebase();
+  }
+
+  function getPassword() {
+    return localStorage.getItem(PASSWORD_KEY) || ADMIN_PASSWORD_DEFAULT;
+  }
+  function setPassword(p) {
+    localStorage.setItem(PASSWORD_KEY, p);
+  }
+
+  /* ============================================================
+   * 실시간 동기화 (Firebase Realtime Database)
+   *
+   * syncCfg 구조: { firebaseConfig: {...}, roomCode: "xxx", role: "admin"|"viewer" }
+   * ============================================================ */
+  let syncCfg = null;
+  try { syncCfg = JSON.parse(localStorage.getItem(SYNC_KEY) || "null"); } catch(e) {}
+
+  let fbApp = null, fbDb = null, fbRef = null, fbUnsub = null;
+  let syncStatus = "off";    // off | ing | ok | err
+  let suppressPush = false;  // 원격 변경을 받아 적용했을 때 다시 푸시하지 않음
+
+  function getSyncCfg() { return syncCfg; }
+
+  function saveSyncCfg(cfg) {
+    syncCfg = cfg;
+    if (cfg) localStorage.setItem(SYNC_KEY, JSON.stringify(cfg));
+    else localStorage.removeItem(SYNC_KEY);
+    applyViewerMode();
+  }
+
+  function applyViewerMode() {
+    if (syncCfg?.role === "viewer") document.body.classList.add("viewer-mode");
+    else document.body.classList.remove("viewer-mode");
+  }
+
+  function setSyncStatus(s, label) {
+    syncStatus = s;
+    const el = document.getElementById("syncBadge");
+    const txt = document.getElementById("syncBadgeText");
+    if (!el) return;
+    el.classList.remove("off","ing","ok","err");
+    el.classList.add(s);
+    txt.textContent = label;
+  }
+
+  function fbReady() {
+    return !!window.__FB;
+  }
+
+  function connectFirebase() {
+    if (!syncCfg || !syncCfg.firebaseConfig || !syncCfg.roomCode) {
+      setSyncStatus("off", "오프라인 (단일 기기)");
+      return;
+    }
+    if (!fbReady()) {
+      setSyncStatus("ing", "Firebase 로드 중...");
+      window.addEventListener("firebase-ready", connectFirebase, { once: true });
+      return;
+    }
+
+    setSyncStatus("ing", "연결 중...");
+
+    try {
+      // 이미 연결돼 있다면 정리
+      if (fbUnsub) { try { fbUnsub(); } catch(e) {} fbUnsub = null; }
+
+      fbApp = window.__FB.initializeApp(syncCfg.firebaseConfig, "ocean_" + Date.now());
+      fbDb = window.__FB.getDatabase(fbApp);
+      fbRef = window.__FB.ref(fbDb, `rooms/${syncCfg.roomCode}`);
+
+      fbUnsub = window.__FB.onValue(fbRef, snap => {
+        const data = snap.val();
+        if (!data) {
+          // 빈 방 - 관리자라면 현재 상태 푸시
+          if (syncCfg.role === "admin") {
+            pushToFirebase(true);
+          }
+          setSyncStatus("ok", `실시간 동기 · ${syncCfg.roomCode} (${syncCfg.role==="admin"?"관리자":"보기"})`);
+          return;
+        }
+        // 자신의 푸시 echo 무시
+        if (data.updatedAt && data.updatedAt === state.updatedAt) {
+          setSyncStatus("ok", `실시간 동기 · ${syncCfg.roomCode} (${syncCfg.role==="admin"?"관리자":"보기"})`);
+          return;
+        }
+        // 원격 데이터 적용
+        suppressPush = true;
+        // 안전 보정
+        const base = blankState();
+        EVENTS.forEach(ev => {
+          if (data.scores && data.scores[ev.id]) {
+            ev.grades.forEach(g => {
+              base.scores[ev.id][g] = data.scores[ev.id][g] || {};
+            });
+          }
+        });
+        base.updatedAt = data.updatedAt;
+        state = base;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderAll();
+        setSyncStatus("ok", `실시간 동기 · ${syncCfg.roomCode} (${syncCfg.role==="admin"?"관리자":"보기"})`);
+        suppressPush = false;
+      }, err => {
+        console.error("Firebase listen error", err);
+        setSyncStatus("err", "연결 오류 — 설정 확인");
+      });
+    } catch (e) {
+      console.error("Firebase init failed", e);
+      setSyncStatus("err", "연결 오류 — 설정 확인");
+    }
+  }
+
+  function pushToFirebase(force) {
+    if (!fbRef || !syncCfg) return;
+    if (suppressPush && !force) return;
+    if (syncCfg.role !== "admin") return; // 보기 전용은 푸시 안 함
+    try {
+      window.__FB.set(fbRef, state).catch(e => {
+        console.error("Push fail", e);
+        setSyncStatus("err", "쓰기 실패 — 규칙 확인");
+      });
+    } catch (e) {
+      console.error("Push exception", e);
+    }
+  }
+
+  function disconnectFirebase() {
+    if (fbUnsub) { try { fbUnsub(); } catch(e) {} fbUnsub = null; }
+    fbApp = null; fbDb = null; fbRef = null;
+    saveSyncCfg(null);
+    setSyncStatus("off", "오프라인 (단일 기기)");
+  }
+
+  // URL 해시에서 참여 정보 파싱: #join=<base64>
+  function parseJoinHash() {
+    if (!location.hash.startsWith("#join=")) return null;
+    try {
+      const raw = decodeURIComponent(location.hash.slice(6));
+      const data = JSON.parse(atob(raw));
+      if (data.fc && data.rc) return { firebaseConfig: data.fc, roomCode: data.rc, role: "viewer" };
+    } catch(e) { console.warn("join parse failed", e); }
+    return null;
+  }
+
+  function generateShareURL() {
+    if (!syncCfg) return null;
+    const payload = btoa(JSON.stringify({
+      fc: syncCfg.firebaseConfig,
+      rc: syncCfg.roomCode
+    }));
+    return location.origin + location.pathname + "#join=" + encodeURIComponent(payload);
+  }
+
+  function generateRoomCode() {
+    const adjectives = ["BLUE","DEEP","FOAM","WAVE","TIDE","REEF","CORAL","KELP"];
+    const a = adjectives[Math.floor(Math.random()*adjectives.length)];
+    const n = Math.floor(Math.random()*9000) + 1000;
+    return `${a}-${n}`;
+  }
+
+  // 초기 진입 시 URL 해시 확인
+  (function initFromURL() {
+    const join = parseJoinHash();
+    if (join) {
+      saveSyncCfg(join);
+      // 보기 전용으로 자동 연결
+      setTimeout(connectFirebase, 50);
+    } else if (syncCfg) {
+      // 이전에 저장된 설정으로 자동 연결
+      setTimeout(connectFirebase, 50);
+    } else {
+      setSyncStatus("off", "오프라인 (단일 기기)");
+    }
+    applyViewerMode();
+  })();
+
+  /* ============================================================
+   * 점수 계산
+   * ============================================================ */
+  function pointsForEvent(eventId, grade, classNum) {
+    const ev = EVENTS.find(e => e.id === eventId);
+    if (!ev) return 0;
+    const data = state.scores[eventId]?.[grade]?.[classNum];
+    if (data == null || data === "" || data === false) return 0;
+
+    if (ev.type === "rank") {
+      const rank = parseInt(data, 10);
+      if (!rank || rank < 1) return 0;
+      return ev.scoring[Math.min(rank - 1, ev.scoring.length - 1)];
+    }
+    if (ev.type === "win") {
+      return data ? ev.winPoints : 0;
+    }
+    if (ev.type === "cheer") {
+      let sum = 0;
+      ev.criteria.forEach(c => {
+        const v = parseFloat(data[c.key]);
+        if (!isNaN(v)) sum += Math.max(0, Math.min(c.max, v));
+      });
+      return sum;
+    }
+    return 0;
+  }
+
+  function totalForClass(grade, classNum) {
+    let total = 0;
+    EVENTS.forEach(ev => {
+      if (!ev.grades.includes(grade)) return;
+      total += pointsForEvent(ev.id, grade, classNum);
+    });
+    return total;
+  }
+
+  function rankClassesInGrade(grade) {
+    const arr = [];
+    for (let c = 1; c <= CLASSES_PER_GRADE; c++) {
+      arr.push({ classNum: c, total: totalForClass(grade, c) });
+    }
+    arr.sort((a, b) => b.total - a.total);
+    // 동점은 같은 순위
+    let prev = null, rank = 0;
+    arr.forEach((item, i) => {
+      if (prev !== item.total) { rank = i + 1; prev = item.total; }
+      item.rank = rank;
+    });
+    return arr;
+  }
+
+  /* ============================================================
+   * 뷰: 학생/교사용 순위 보드
+   * ============================================================ */
+  let currentGrade = 1; // 1, 2, 3, "all"
+
+  function renderRanking() {
+    const grid = document.getElementById("rankingGrid");
+
+    if (currentGrade === "all") {
+      // 전 학년을 한 번에 보여주는 모드
+      grid.innerHTML = "";
+      [1,2,3].forEach(g => {
+        const ranked = rankClassesInGrade(g);
+        const groupTitle = document.createElement("div");
+        groupTitle.style.cssText = "grid-column: 1 / -1; margin-top: 12px; font-weight:700; font-size:16px; color: rgba(255,255,255,0.7); letter-spacing:0.05em;";
+        groupTitle.textContent = g + "학년";
+        grid.appendChild(groupTitle);
+        ranked.forEach(item => grid.appendChild(buildCard(g, item)));
+      });
+      return;
+    }
+
+    const ranked = rankClassesInGrade(currentGrade);
+    grid.innerHTML = "";
+    ranked.forEach(item => grid.appendChild(buildCard(currentGrade, item)));
+  }
+
+  function buildCard(grade, item) {
+    const card = document.createElement("div");
+    card.className = "class-card" + (item.rank <= 3 ? " rank-" + item.rank : "");
+    const medal = item.rank === 1 ? "🥇" : item.rank === 2 ? "🥈" : item.rank === 3 ? "🥉" : "";
+
+    let eventBars = "";
+    EVENTS.forEach(ev => {
+      if (!ev.grades.includes(grade)) return;
+      const pts = pointsForEvent(ev.id, grade, item.classNum);
+      const has = pts > 0;
+      eventBars += `<div class="ev ${has ? "" : "no"}"><span class="nm">${ev.name}</span><span class="vl">${pts}</span></div>`;
+    });
+
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="rank-badge">${medal || ("#" + item.rank)}</div>
+        <div style="text-align:right">
+          <div class="class-grade">${grade}학년</div>
+          <div class="class-title">${item.classNum}반</div>
+        </div>
+      </div>
+      <div>
+        <div class="total-score">${item.total}</div>
+        <div class="total-label">TOTAL POINTS</div>
+      </div>
+      <div class="event-bar">${eventBars}</div>
+    `;
+    return card;
+  }
+
+  function renderEvents() {
+    const grid = document.getElementById("eventsGrid");
+    grid.innerHTML = "";
+
+    EVENTS.forEach(ev => {
+      // currentGrade가 학년이면 해당 학년 관련 종목만, 'all'이면 전부 표시
+      if (currentGrade !== "all" && !ev.grades.includes(currentGrade)) return;
+
+      // 보여줄 학년 결정
+      const showGrades = currentGrade === "all" ? ev.grades : [currentGrade];
+
+      showGrades.forEach(grade => {
+        const card = document.createElement("div");
+        card.className = "event-card";
+
+        // 학급별 점수 산출
+        const items = [];
+        for (let c = 1; c <= CLASSES_PER_GRADE; c++) {
+          const pts = pointsForEvent(ev.id, grade, c);
+          let rankDisplay = null;
+          if (ev.type === "rank") {
+            const r = state.scores[ev.id]?.[grade]?.[c];
+            if (r) rankDisplay = parseInt(r,10);
+          } else if (ev.type === "win") {
+            rankDisplay = state.scores[ev.id]?.[grade]?.[c] ? "승" : null;
+          }
+          items.push({ classNum: c, pts, rankDisplay });
+        }
+
+        // 정렬
+        items.sort((a, b) => {
+          if (ev.type === "rank") {
+            // 순위 입력된 것 먼저
+            if (a.rankDisplay && b.rankDisplay) return a.rankDisplay - b.rankDisplay;
+            if (a.rankDisplay) return -1;
+            if (b.rankDisplay) return 1;
+            return a.classNum - b.classNum;
+          }
+          return b.pts - a.pts;
+        });
+
+        const showGrade = ev.grades.length > 1 ? `<div class="event-meta">${grade}학년</div>` : `<div class="event-meta">${ev.grades.join("·")}학년 전용</div>`;
+        let rows = "";
+        items.forEach(it => {
+          const has = ev.type === "cheer" ? it.pts > 0 : (it.rankDisplay != null);
+          const rkClass = ev.type === "rank" && it.rankDisplay && it.rankDisplay <= 3 ? "r" + it.rankDisplay : "";
+          const rk = ev.type === "rank"
+            ? (it.rankDisplay ? it.rankDisplay : "-")
+            : ev.type === "win"
+              ? (it.rankDisplay || "-")
+              : "·";
+          rows += `<div class="event-row ${rkClass} ${has ? "" : "no"}">
+            <div class="left">
+              <span class="rk">${rk}</span>
+              <span class="nm">${it.classNum}반</span>
+            </div>
+            <span class="pt">${it.pts}점</span>
+          </div>`;
+        });
+
+        card.innerHTML = `
+          <div class="event-card-head">
+            <div>
+              <div class="event-name">${ev.name}</div>
+              ${showGrade}
+            </div>
+          </div>
+          <div class="event-list">${rows}</div>
+        `;
+        grid.appendChild(card);
+      });
+    });
+
+    if (!grid.children.length) {
+      grid.innerHTML = `<div class="empty"><div class="icon">🌊</div>표시할 종목이 없습니다.</div>`;
+    }
+  }
+
+  function renderAll() {
+    renderRanking();
+    renderEvents();
+  }
+
+  /* ============================================================
+   * 학년 탭
+   * ============================================================ */
+  document.getElementById("gradeTabs").addEventListener("click", e => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    document.querySelectorAll("#gradeTabs button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const g = btn.dataset.grade;
+    currentGrade = g === "all" ? "all" : parseInt(g, 10);
+    renderAll();
+  });
+
+  /* ============================================================
+   * 시계
+   * ============================================================ */
+  function updateClock() {
+    const now = new Date();
+    const days = ["일","월","화","수","목","금","토"];
+    const txt = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,"0")}.${String(now.getDate()).padStart(2,"0")} (${days[now.getDay()]}) ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+    const el = document.getElementById("clock-text");
+    if (el) el.textContent = txt + " · LIVE";
+  }
+  setInterval(updateClock, 1000); updateClock();
+
+  /* ============================================================
+   * 거품 애니메이션
+   * ============================================================ */
+  function spawnBubbles() {
+    const container = document.getElementById("bubbles");
+    for (let i = 0; i < 18; i++) {
+      const b = document.createElement("div");
+      b.className = "bubble";
+      const size = Math.random() * 18 + 6;
+      b.style.width = size + "px";
+      b.style.height = size + "px";
+      b.style.left = Math.random() * 100 + "vw";
+      b.style.animationDuration = (Math.random() * 14 + 12) + "s";
+      b.style.animationDelay = (Math.random() * 14) + "s";
+      container.appendChild(b);
+    }
+  }
+  spawnBubbles();
+
+  /* ============================================================
+   * 모달 시스템
+   * ============================================================ */
+  const modalEl = document.getElementById("modal");
+  const modalTitleEl = document.getElementById("modalTitle");
+  const modalBodyEl = document.getElementById("modalBody");
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  modalEl.addEventListener("click", e => { if (e.target === modalEl) closeModal(); });
+
+  function openModal(title, htmlOrNode) {
+    modalTitleEl.textContent = title;
+    if (typeof htmlOrNode === "string") modalBodyEl.innerHTML = htmlOrNode;
+    else { modalBodyEl.innerHTML = ""; modalBodyEl.appendChild(htmlOrNode); }
+    modalEl.classList.add("open");
+  }
+  function closeModal() { modalEl.classList.remove("open"); }
+
+  /* ============================================================
+   * 토스트
+   * ============================================================ */
+  function toast(msg, type = "ok") {
+    const t = document.createElement("div");
+    t.className = "toast" + (type === "danger" ? " danger" : "");
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
+  }
+
+  /* ============================================================
+   * 관리자 로그인
+   * ============================================================ */
+  document.getElementById("adminFab").addEventListener("click", showAdminLogin);
+
+  function showAdminLogin() {
+    openModal("관리자 인증", `
+      <div class="login-box">
+        <div class="icon">🔒</div>
+        <h3>관리자 비밀번호</h3>
+        <p>점수를 입력하려면 비밀번호를 입력하세요.</p>
+        <input type="password" id="loginPwd" class="input" placeholder="비밀번호" autofocus>
+        <div style="height:12px"></div>
+        <button class="btn full" id="loginBtn">로그인</button>
+        <div style="margin-top:14px; font-size:12px; color:rgba(255,255,255,0.4);">
+          최초 비밀번호: <b style="color:rgba(255,255,255,0.7);">${ADMIN_PASSWORD_DEFAULT}</b>
+        </div>
+      </div>
+    `);
+    const inp = document.getElementById("loginPwd");
+    const btn = document.getElementById("loginBtn");
+    const attempt = () => {
+      if (inp.value === getPassword()) {
+        showAdminPanel();
+      } else {
+        toast("비밀번호가 일치하지 않습니다", "danger");
+        inp.value = ""; inp.focus();
+      }
+    };
+    btn.addEventListener("click", attempt);
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") attempt(); });
+  }
+
+  /* ============================================================
+   * 관리자 패널
+   * ============================================================ */
+  let adminTab = "score";       // score | cheer | data
+  let adminEventId = "wave";
+  let adminGrade = 1;
+
+  function showAdminPanel() {
+    openModal("관리자 모드", `
+      <div class="admin-tabs" id="adminTabs">
+        <button data-tab="score"  class="${adminTab==="score" ? "active" : ""}">종목별 점수</button>
+        <button data-tab="cheer"  class="${adminTab==="cheer" ? "active" : ""}">응원·질서</button>
+        <button data-tab="sync"   class="${adminTab==="sync" ? "active" : ""}">실시간 동기화</button>
+        <button data-tab="data"   class="${adminTab==="data" ? "active" : ""}">데이터 관리</button>
+        <button data-tab="setting" class="${adminTab==="setting" ? "active" : ""}">설정</button>
+      </div>
+      <div id="adminContent"></div>
+    `);
+    document.getElementById("adminTabs").addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      adminTab = b.dataset.tab;
+      document.querySelectorAll("#adminTabs button").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      renderAdminContent();
+    });
+    renderAdminContent();
+  }
+
+  function renderAdminContent() {
+    const c = document.getElementById("adminContent");
+    if (adminTab === "score")    renderAdminScore(c);
+    else if (adminTab === "cheer") renderAdminCheer(c);
+    else if (adminTab === "sync")  renderAdminSync(c);
+    else if (adminTab === "data")  renderAdminData(c);
+    else if (adminTab === "setting") renderAdminSetting(c);
+  }
+
+  function renderAdminScore(c) {
+    const rankEvents = EVENTS.filter(e => e.type === "rank" || e.type === "win");
+    if (!rankEvents.find(e => e.id === adminEventId)) adminEventId = rankEvents[0].id;
+    const ev = rankEvents.find(e => e.id === adminEventId);
+    if (!ev.grades.includes(adminGrade)) adminGrade = ev.grades[0];
+
+    let pillsHtml = "";
+    rankEvents.forEach(e => {
+      pillsHtml += `<button class="event-pill ${e.id===adminEventId ? "active" : ""}" data-eid="${e.id}">${e.name}</button>`;
+    });
+
+    let gradeHtml = "";
+    ev.grades.forEach(g => {
+      gradeHtml += `<button class="${g===adminGrade ? "active" : ""}" data-g="${g}">${g}학년</button>`;
+    });
+
+    let bodyHtml = "";
+    if (ev.type === "rank") {
+      const scoringText = ev.scoring.slice(0,5).map((p,i)=>`${i+1}위 ${p}점`).join(" · ") + " · 그 외 " + ev.scoring[5] + "점";
+      bodyHtml = `
+        <div class="helper"><b>${ev.name} (${adminGrade}학년)</b> 채점기준: ${scoringText}<br>각 학급의 순위(1~10)를 선택하면 자동으로 점수가 계산됩니다. 동일 순위 허용 — 비울 수도 있습니다.</div>
+        <div class="score-grid">`;
+      for (let i = 1; i <= CLASSES_PER_GRADE; i++) {
+        const v = state.scores[ev.id][adminGrade][i] || "";
+        const pts = pointsForEvent(ev.id, adminGrade, i);
+        let opts = `<option value="">미입력</option>`;
+        for (let r = 1; r <= CLASSES_PER_GRADE; r++) {
+          opts += `<option value="${r}" ${String(v)===String(r) ? "selected" : ""}>${r}위</option>`;
+        }
+        bodyHtml += `<div class="score-row">
+          <span class="label">${i}반</span>
+          <select data-cls="${i}">${opts}</select>
+          <span class="points" data-pts="${i}">${pts}점</span>
+        </div>`;
+      }
+      bodyHtml += `</div>`;
+    } else if (ev.type === "win") {
+      bodyHtml = `
+        <div class="helper"><b>이벤트 줄다리기</b> · 승리한 학급에 <b>${ev.winPoints}점</b>을 부여합니다. 학급을 클릭해 토글하세요. (복수 선택 가능)</div>
+        <div class="toggle-grid">`;
+      for (let i = 1; i <= CLASSES_PER_GRADE; i++) {
+        const won = !!state.scores[ev.id][adminGrade][i];
+        bodyHtml += `<div class="toggle-pill ${won ? "won" : ""}" data-cls="${i}">${i}반</div>`;
+      }
+      bodyHtml += `</div>`;
+    }
+
+    c.innerHTML = `
+      <div class="event-picker" id="evPicker">${pillsHtml}</div>
+      <div class="grade-picker" id="grPicker">${gradeHtml}</div>
+      ${bodyHtml}
+    `;
+
+    // 이벤트 바인딩
+    c.querySelector("#evPicker").addEventListener("click", e => {
+      const b = e.target.closest("[data-eid]");
+      if (!b) return;
+      adminEventId = b.dataset.eid;
+      renderAdminContent();
+    });
+    c.querySelector("#grPicker").addEventListener("click", e => {
+      const b = e.target.closest("[data-g]");
+      if (!b) return;
+      adminGrade = parseInt(b.dataset.g, 10);
+      renderAdminContent();
+    });
+
+    if (ev.type === "rank") {
+      c.querySelectorAll("select[data-cls]").forEach(sel => {
+        sel.addEventListener("change", () => {
+          const cls = parseInt(sel.dataset.cls, 10);
+          const v = sel.value;
+          if (v === "") delete state.scores[ev.id][adminGrade][cls];
+          else state.scores[ev.id][adminGrade][cls] = parseInt(v, 10);
+          saveState();
+          const pts = pointsForEvent(ev.id, adminGrade, cls);
+          const ptsEl = c.querySelector(`[data-pts="${cls}"]`);
+          if (ptsEl) ptsEl.textContent = pts + "점";
+          renderAll();
+        });
+      });
+    } else if (ev.type === "win") {
+      c.querySelectorAll(".toggle-pill[data-cls]").forEach(p => {
+        p.addEventListener("click", () => {
+          const cls = parseInt(p.dataset.cls, 10);
+          if (state.scores[ev.id][adminGrade][cls]) {
+            delete state.scores[ev.id][adminGrade][cls];
+            p.classList.remove("won");
+          } else {
+            state.scores[ev.id][adminGrade][cls] = true;
+            p.classList.add("won");
+          }
+          saveState();
+          renderAll();
+        });
+      });
+    }
+  }
+
+  function renderAdminCheer(c) {
+    const ev = EVENTS.find(e => e.id === "cheer");
+    if (!ev.grades.includes(adminGrade)) adminGrade = ev.grades[0];
+
+    let gradeHtml = "";
+    ev.grades.forEach(g => {
+      gradeHtml += `<button class="${g===adminGrade ? "active" : ""}" data-g="${g}">${g}학년</button>`;
+    });
+
+    let body = `<div class="helper">
+      <b>응원 · 질서 채점표</b> (각 항목 만점 = 협동심 20 · 좌석 20 · 응원준비 10 · 청결 30 · 신속도 20, 총 100점).<br>
+      각 학급의 항목별 점수를 직접 입력하세요. 자동으로 합산됩니다.
+    </div>
+    <div class="grade-picker" id="grPicker2">${gradeHtml}</div>
+    <div class="cheer-grid">`;
+
+    for (let i = 1; i <= CLASSES_PER_GRADE; i++) {
+      const v = state.scores[ev.id][adminGrade][i] || {};
+      let fieldsHtml = "";
+      ev.criteria.forEach(cr => {
+        fieldsHtml += `<label>${cr.label}<br><small style="color:rgba(255,255,255,0.4)">/${cr.max}</small>
+          <input type="number" min="0" max="${cr.max}" data-cls="${i}" data-key="${cr.key}" value="${v[cr.key] != null ? v[cr.key] : ""}" placeholder="0">
+        </label>`;
+      });
+      const total = pointsForEvent("cheer", adminGrade, i);
+      body += `<div class="cheer-card">
+        <div class="cheer-class">${i}반</div>
+        <div class="cheer-fields">${fieldsHtml}</div>
+        <div class="cheer-total" data-total="${i}">합계 ${total} / 100</div>
+      </div>`;
+    }
+    body += `</div>`;
+
+    c.innerHTML = body;
+
+    c.querySelector("#grPicker2").addEventListener("click", e => {
+      const b = e.target.closest("[data-g]");
+      if (!b) return;
+      adminGrade = parseInt(b.dataset.g, 10);
+      renderAdminContent();
+    });
+
+    c.querySelectorAll("input[data-cls]").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const cls = parseInt(inp.dataset.cls, 10);
+        const key = inp.dataset.key;
+        if (!state.scores.cheer[adminGrade][cls]) state.scores.cheer[adminGrade][cls] = {};
+        const v = inp.value === "" ? null : parseFloat(inp.value);
+        if (v == null || isNaN(v)) delete state.scores.cheer[adminGrade][cls][key];
+        else state.scores.cheer[adminGrade][cls][key] = v;
+        saveState();
+        const total = pointsForEvent("cheer", adminGrade, cls);
+        const totalEl = c.querySelector(`[data-total="${cls}"]`);
+        if (totalEl) totalEl.textContent = `합계 ${total} / 100`;
+        renderAll();
+      });
+    });
+  }
+
+  function renderAdminData(c) {
+    const lastUpdate = state.updatedAt ? new Date(state.updatedAt).toLocaleString("ko-KR") : "기록 없음";
+    c.innerHTML = `
+      <div class="helper">데이터는 이 브라우저에 저장됩니다. 다른 기기와 공유하려면 <b>내보내기</b>로 파일을 백업하거나, 백업한 파일을 <b>불러오기</b> 하세요.</div>
+
+      <div class="data-section">
+        <h4>📤 데이터 내보내기</h4>
+        <p>현재 점수를 JSON 파일로 저장합니다. 마지막 저장 시각: ${lastUpdate}</p>
+        <button class="btn" id="btnExport">파일 내보내기</button>
+      </div>
+
+      <div class="data-section">
+        <h4>📥 데이터 불러오기</h4>
+        <p>저장된 JSON 파일을 선택하면 현재 점수를 덮어씁니다.</p>
+        <input type="file" id="fileImport" accept="application/json" style="display:none">
+        <button class="btn ghost" id="btnImport">파일 선택</button>
+      </div>
+
+      <div class="data-section">
+        <h4>🖨️ 결과 인쇄 · PDF 저장</h4>
+        <p>전체 순위를 인쇄 가능한 화면으로 보기. 시상 발표용.</p>
+        <button class="btn ghost" id="btnPrint">인쇄 화면</button>
+      </div>
+
+      <div class="data-section" style="border-color: rgba(239,68,68,0.3);">
+        <h4 style="color:#fca5a5;">⚠️ 모든 데이터 초기화</h4>
+        <p>모든 종목의 점수와 입력 내용을 삭제합니다. 되돌릴 수 없습니다.</p>
+        <button class="btn danger" id="btnReset">전체 초기화</button>
+      </div>
+    `;
+
+    document.getElementById("btnExport").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0,16);
+      a.href = url;
+      a.download = `O올림픽_점수백업_${stamp}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("백업 파일을 저장했습니다");
+    });
+
+    document.getElementById("btnImport").addEventListener("click", () => {
+      document.getElementById("fileImport").click();
+    });
+    document.getElementById("fileImport").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (!parsed || !parsed.scores) throw new Error("형식 오류");
+          if (!confirm("현재 점수를 덮어쓰고 불러오시겠습니까?")) return;
+          state = parsed;
+          // 안전 보정
+          const base = blankState();
+          EVENTS.forEach(ev => {
+            if (state.scores[ev.id]) {
+              ev.grades.forEach(g => {
+                base.scores[ev.id][g] = state.scores[ev.id][g] || {};
+              });
+            }
+          });
+          base.updatedAt = state.updatedAt;
+          state = base;
+          saveState();
+          renderAll();
+          renderAdminContent();
+          toast("불러오기 완료");
+        } catch (err) {
+          toast("불러오기 실패: " + err.message, "danger");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById("btnReset").addEventListener("click", () => {
+      if (!confirm("정말로 모든 점수 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")) return;
+      if (!confirm("한 번 더 확인합니다. 모든 데이터를 초기화할까요?")) return;
+      state = blankState();
+      saveState();
+      renderAll();
+      renderAdminContent();
+      toast("모든 데이터를 초기화했습니다");
+    });
+
+    document.getElementById("btnPrint").addEventListener("click", () => {
+      showPrintView();
+    });
+  }
+
+  function renderAdminSync(c) {
+    const cfg = getSyncCfg();
+    const isConnected = syncStatus === "ok";
+    const isAdmin = cfg?.role === "admin";
+
+    let html = "";
+
+    if (isConnected && isAdmin) {
+      // ===== 연결된 관리자 화면 =====
+      const shareURL = generateShareURL();
+      html += `
+        <div class="helper" style="background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3);">
+          <b style="color:#86efac;">✅ 실시간 동기화 활성화됨</b><br>
+          방 코드: <b>${cfg.roomCode}</b> · 역할: 관리자<br>
+          이 기기에서 입력한 점수가 모든 보기 기기에 실시간으로 반영됩니다.
+        </div>
+
+        <div class="data-section">
+          <h4>📲 다른 기기에 보여주기</h4>
+          <p>아래 QR 코드를 학생용 디스플레이/태블릿/스마트폰으로 스캔하거나, URL을 공유하세요. 보기 전용 모드로 자동 접속됩니다.</p>
+          <div class="qr-box"><canvas id="qrCanvas"></canvas></div>
+          <div class="share-url" id="shareURLBox">${shareURL}</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" id="copyURLBtn">🔗 URL 복사</button>
+            <button class="btn ghost" id="openNewBtn">↗️ 새 창에서 미리보기</button>
+          </div>
+        </div>
+
+        <div class="data-section">
+          <h4>⛓️ 연결 해제</h4>
+          <p>실시간 동기화를 중단하고 단일 기기 모드로 돌아갑니다. 현재 점수 데이터는 유지됩니다.</p>
+          <button class="btn danger" id="disconnectBtn">연결 해제</button>
+        </div>
+      `;
+    } else if (isConnected && !isAdmin) {
+      // ===== 보기 전용으로 접속됨 =====
+      html += `
+        <div class="helper" style="background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3);">
+          <b style="color:#86efac;">✅ 보기 전용 모드로 접속됨</b><br>
+          방 코드: <b>${cfg.roomCode}</b> · 관리자가 점수를 입력하면 자동으로 반영됩니다.
+        </div>
+        <div class="data-section">
+          <h4>⛓️ 연결 해제</h4>
+          <p>이 기기에서 보기 전용 연결을 끊습니다.</p>
+          <button class="btn danger" id="disconnectBtn">연결 해제</button>
+        </div>
+      `;
+    } else {
+      // ===== 미연결 — 설정 가이드 =====
+      const savedCfg = cfg ? JSON.stringify(cfg.firebaseConfig, null, 2) : "";
+      const savedRoom = cfg?.roomCode || generateRoomCode();
+      html += `
+        <div class="helper">
+          <b>🌐 실시간 동기화를 켜면</b> 관리자가 점수를 입력할 때마다 다른 기기(프로젝터·태블릿·학생 스마트폰)에 즉시 반영됩니다. <b>Firebase Realtime Database (무료)</b>를 사용합니다.
+        </div>
+
+        <div class="data-section">
+          <h4>1단계 · Firebase 프로젝트 만들기 (최초 1회, 약 5분)</h4>
+          <ol class="step-list">
+            <li><a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> 접속 후 Google 계정으로 로그인</li>
+            <li><b>프로젝트 추가</b> 클릭 → 이름은 자유롭게 (예: <code>ocean-olympic</code>) → 다음 → Analytics는 끄기 → 만들기</li>
+            <li>왼쪽 메뉴에서 <b>빌드 → Realtime Database</b> 클릭 → <b>데이터베이스 만들기</b> → 위치는 <code>asia-southeast1</code> → <b>테스트 모드</b> 선택 → 사용 설정</li>
+            <li>왼쪽 위 <b>⚙️ 톱니바퀴 → 프로젝트 설정</b> → 일반 탭 아래로 스크롤 → <b>내 앱</b> 섹션에서 웹 모양 <b>&lt;/&gt; 아이콘</b> 클릭</li>
+            <li>앱 닉네임 입력 (예: <code>scoreboard</code>) → <b>앱 등록</b> → 표시된 <code>firebaseConfig</code> 객체 전체를 복사</li>
+          </ol>
+        </div>
+
+        <div class="data-section">
+          <h4>2단계 · 설정 붙여넣기</h4>
+          <p>위에서 복사한 <code>firebaseConfig</code>를 그대로 붙여넣으세요. (중괄호 포함 전체)</p>
+          <textarea class="input" id="cfgInput" placeholder='{
+  "apiKey": "AIza...",
+  "authDomain": "...firebaseapp.com",
+  "databaseURL": "https://...firebasedatabase.app",
+  "projectId": "...",
+  ...
+}'>${savedCfg}</textarea>
+
+          <div style="margin-top: 12px;">
+            <label style="font-size: 13px; color: rgba(255,255,255,0.7);">방 코드 (학교/대회 식별자 — 영문/숫자, 자유롭게)</label>
+            <input type="text" class="input" id="roomInput" value="${savedRoom}" placeholder="예: OCEAN-2026">
+          </div>
+
+          <div style="margin-top: 14px; display:flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn" id="connectBtn">🔗 연결하고 동기화 시작</button>
+            <button class="btn ghost" id="newRoomBtn">🎲 방 코드 새로 생성</button>
+          </div>
+
+          <p style="margin-top: 12px; font-size:12px; color:rgba(255,255,255,0.5);">
+            ⚠️ <b>중요</b>: Realtime Database 규칙에서 <code>".read": true, ".write": true</code> 가 되어 있어야 합니다. 테스트 모드로 만들었다면 이미 설정돼 있습니다 (30일 후 자동 만료).
+          </p>
+        </div>
+      `;
+    }
+
+    c.innerHTML = html;
+
+    // ====== 이벤트 핸들러 바인딩 ======
+
+    // 연결됨 — 관리자 화면
+    if (isConnected && isAdmin) {
+      // QR 코드 그리기
+      const canvas = document.getElementById("qrCanvas");
+      const url = generateShareURL();
+      if (canvas && window.QRCode) {
+        window.QRCode.toCanvas(canvas, url, { width: 220, margin: 1, color: { dark: "#0a2540", light: "#ffffff" } }, err => {
+          if (err) console.warn("QR error", err);
+        });
+      }
+      document.getElementById("copyURLBtn")?.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(url);
+          toast("공유 URL을 복사했습니다");
+        } catch(e) {
+          // fallback
+          const ta = document.createElement("textarea");
+          ta.value = url; document.body.appendChild(ta);
+          ta.select(); document.execCommand("copy"); ta.remove();
+          toast("공유 URL을 복사했습니다");
+        }
+      });
+      document.getElementById("openNewBtn")?.addEventListener("click", () => {
+        window.open(url, "_blank");
+      });
+      document.getElementById("disconnectBtn")?.addEventListener("click", () => {
+        if (!confirm("실시간 동기화를 중단할까요? 다른 기기는 더 이상 업데이트를 받지 못합니다.")) return;
+        disconnectFirebase();
+        renderAdminContent();
+      });
+    }
+
+    // 보기 전용 화면
+    if (isConnected && !isAdmin) {
+      document.getElementById("disconnectBtn")?.addEventListener("click", () => {
+        disconnectFirebase();
+        toast("연결을 해제했습니다");
+        renderAdminContent();
+      });
+    }
+
+    // 미연결 — 설정 화면
+    if (!isConnected) {
+      document.getElementById("newRoomBtn")?.addEventListener("click", () => {
+        document.getElementById("roomInput").value = generateRoomCode();
+      });
+      document.getElementById("connectBtn")?.addEventListener("click", () => {
+        const raw = document.getElementById("cfgInput").value.trim();
+        const room = document.getElementById("roomInput").value.trim();
+        if (!raw) { toast("Firebase 설정을 붙여넣으세요", "danger"); return; }
+        if (!room) { toast("방 코드를 입력하세요", "danger"); return; }
+
+        let parsed;
+        try {
+          // 사용자가 JS 형식으로 붙여넣은 경우도 지원: const firebaseConfig = { ... };
+          let cleaned = raw.replace(/^[^{]*/, "").replace(/[^}]*$/, "");
+          // 키 따옴표 보정 (JS 객체 → JSON)
+          cleaned = cleaned.replace(/([\{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+          // 작은따옴표 → 큰따옴표
+          cleaned = cleaned.replace(/'/g, '"');
+          parsed = JSON.parse(cleaned);
+        } catch(e) {
+          toast("설정 형식이 올바르지 않습니다", "danger");
+          console.error("Parse error", e);
+          return;
+        }
+
+        if (!parsed.apiKey || !parsed.databaseURL) {
+          toast("apiKey 또는 databaseURL 누락", "danger");
+          return;
+        }
+
+        saveSyncCfg({ firebaseConfig: parsed, roomCode: room, role: "admin" });
+        toast("연결 중...");
+        connectFirebase();
+        // 잠시 후 다시 렌더
+        setTimeout(() => renderAdminContent(), 1200);
+      });
+    }
+  }
+
+  function renderAdminSetting(c) {
+    c.innerHTML = `
+      <div class="helper">
+        관리자 비밀번호를 변경합니다. (이 브라우저에서만 유효합니다)<br>
+        기본값: <b>${ADMIN_PASSWORD_DEFAULT}</b>
+      </div>
+      <div class="data-section">
+        <h4>🔑 비밀번호 변경</h4>
+        <p>새 비밀번호를 입력하세요. 최소 4자 이상.</p>
+        <input type="password" id="newPwd" class="input" placeholder="새 비밀번호">
+        <div style="height:8px"></div>
+        <input type="password" id="confirmPwd" class="input" placeholder="새 비밀번호 확인">
+        <div style="height:12px"></div>
+        <button class="btn" id="savePwd">비밀번호 저장</button>
+      </div>
+      <div class="data-section">
+        <h4>🎓 학급 정보</h4>
+        <p>학년당 10개 학급 (1반 ~ 10반) · PDF 기준 고정</p>
+      </div>
+    `;
+    document.getElementById("savePwd").addEventListener("click", () => {
+      const a = document.getElementById("newPwd").value;
+      const b = document.getElementById("confirmPwd").value;
+      if (a.length < 4) { toast("4자 이상 입력하세요", "danger"); return; }
+      if (a !== b) { toast("두 비밀번호가 다릅니다", "danger"); return; }
+      setPassword(a);
+      toast("비밀번호를 변경했습니다");
+      document.getElementById("newPwd").value = "";
+      document.getElementById("confirmPwd").value = "";
+    });
+  }
+
+  /* ============================================================
+   * 인쇄/시상 발표 화면
+   * ============================================================ */
+  function showPrintView() {
+    let html = `
+      <style>
+        @media print {
+          body { background: #fff !important; color: #000 !important; }
+          .ocean-bg, .bubbles, .fab, .modal-backdrop { display: none !important; }
+          .print-page { background: #fff !important; color: #000 !important; }
+          .print-page .gh { color: #000 !important; border-color: #000 !important; }
+          .print-page td, .print-page th { color: #000 !important; }
+        }
+        .print-page { padding: 20px; background: #fff; color: #111; border-radius: 12px; }
+        .print-page h3 { color: #0a2540; border-bottom: 3px solid #0a2540; padding-bottom: 8px; margin: 20px 0 12px; font-size: 18px; }
+        .print-page table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .print-page th, .print-page td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        .print-page th { background: #f0f4f9; }
+        .print-page td.r1 { background: #fef3c7; font-weight: 800; }
+        .print-page td.r2 { background: #e2e8f0; font-weight: 700; }
+        .print-page td.r3 { background: #fed7aa; font-weight: 700; }
+      </style>
+      <div class="print-page">
+        <div style="text-align:center; margin-bottom: 12px;">
+          <div style="font-size: 24px; font-weight: 900; color: #0a2540;">O 올림픽 체육대회 결과</div>
+          <div style="font-size: 12px; color: #666; margin-top:4px;">최종 집계 · ${new Date().toLocaleString("ko-KR")}</div>
+        </div>`;
+
+    [1,2,3].forEach(g => {
+      const ranked = rankClassesInGrade(g);
+      html += `<h3>${g}학년 종합 순위</h3>
+        <table>
+          <thead><tr><th>순위</th><th>반</th>`;
+      EVENTS.filter(ev => ev.grades.includes(g)).forEach(ev => {
+        html += `<th>${ev.name}</th>`;
+      });
+      html += `<th>총점</th></tr></thead><tbody>`;
+      ranked.forEach(item => {
+        const rkCls = item.rank <= 3 ? `r${item.rank}` : "";
+        html += `<tr><td class="${rkCls}">${item.rank}위</td><td class="${rkCls}">${item.classNum}반</td>`;
+        EVENTS.filter(ev => ev.grades.includes(g)).forEach(ev => {
+          const pts = pointsForEvent(ev.id, g, item.classNum);
+          html += `<td class="${rkCls}">${pts}</td>`;
+        });
+        html += `<td class="${rkCls}"><b>${item.total}</b></td></tr>`;
+      });
+      html += `</tbody></table>`;
+    });
+    html += `<div style="margin-top:16px; text-align:center;">
+      <button class="btn" onclick="window.print()">인쇄하기</button>
+      <button class="btn ghost" onclick="document.getElementById('modalClose').click()">닫기</button>
+    </div></div>`;
+
+    modalTitleEl.textContent = "결과 인쇄 · PDF 저장";
+    modalBodyEl.innerHTML = html;
+  }
+
+  /* ============================================================
+   * 초기 렌더
+   * ============================================================ */
+  renderAll();
+
+  // 다른 탭에서 점수가 갱신되면 자동 반영
+  window.addEventListener("storage", e => {
+    if (e.key === STORAGE_KEY) {
+      state = loadState();
+      renderAll();
+    }
+  });
+  </script>
+</body>
+</html>
