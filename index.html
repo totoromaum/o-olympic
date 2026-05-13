@@ -54,6 +54,9 @@
     min-height: 100vh;
     overflow-x: hidden;
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   /* 배경 파도 애니메이션 */
@@ -342,18 +345,32 @@
 
   .event-bar {
     margin-top: 16px; padding-top: 14px;
-    border-top: 1px dashed rgba(255,255,255,0.15);
+    border-top: 1px dashed rgba(255,255,255,0.22);
     display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
-    font-size: 12px;
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   .event-bar .ev {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 4px 8px; border-radius: 8px;
-    background: rgba(255,255,255,0.04);
+    padding: 6px 10px; border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.06);
   }
-  .event-bar .ev .nm { color: rgba(255,255,255,0.65); }
-  .event-bar .ev .vl { color: #fff; font-weight: 600; }
-  .event-bar .ev.no { opacity: 0.4; }
+  .event-bar .ev .nm {
+    color: #ffffff;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    letter-spacing: -0.01em;
+  }
+  .event-bar .ev .vl {
+    color: #4dd0e1;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .event-bar .ev.no { opacity: 0.55; }
+  .event-bar .ev.no .vl { color: rgba(255,255,255,0.7); }
 
   /* ============================= 종목별 보드 ============================= */
   .events-section {
@@ -376,39 +393,65 @@
     gap: 16px;
   }
   .event-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03));
     border: 1px solid var(--c-border);
     border-radius: var(--r-md);
     padding: 18px 20px;
     backdrop-filter: blur(20px);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   .event-card-head {
     display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
-  .event-name { font-size: 17px; font-weight: 700; color: #fff; }
-  .event-meta { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.05em; margin-top: 2px; }
+  .event-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .event-meta {
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+    font-weight: 500;
+  }
   .event-list { display: flex; flex-direction: column; gap: 4px; }
   .event-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 6px 10px; border-radius: 8px;
-    font-size: 13px;
+    padding: 8px 12px; border-radius: 8px;
+    font-size: 14px;
     transition: background 0.2s;
   }
-  .event-row:hover { background: rgba(255,255,255,0.05); }
-  .event-row.no { opacity: 0.35; }
+  .event-row:hover { background: rgba(255,255,255,0.08); }
+  .event-row.no { opacity: 0.5; }
+  .event-row.no .nm { color: rgba(255,255,255,0.65); }
   .event-row .left { display: flex; align-items: center; gap: 10px; }
   .event-row .rk {
     display: inline-flex; align-items: center; justify-content: center;
-    min-width: 22px; height: 22px; border-radius: 6px;
-    font-size: 11px; font-weight: 700;
-    background: rgba(255,255,255,0.1);
+    min-width: 24px; height: 24px; border-radius: 6px;
+    font-size: 12px; font-weight: 700;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
   }
   .event-row.r1 .rk { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #422a02; }
   .event-row.r2 .rk { background: linear-gradient(135deg, #e2e8f0, #94a3b8); color: #1e293b; }
   .event-row.r3 .rk { background: linear-gradient(135deg, #fbbf24, #d97706); color: #422a02; }
-  .event-row .nm { color: rgba(255,255,255,0.85); font-weight: 500; }
-  .event-row .pt { color: #4dd0e1; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .event-row .nm {
+    color: #ffffff;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    letter-spacing: -0.01em;
+  }
+  .event-row .pt {
+    color: #4dd0e1;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
 
   /* ============================= 플로팅 버튼 ============================= */
   .fab {
