@@ -1279,15 +1279,19 @@
     setSyncStatus("off", "오프라인 (단일 기기)");
   }
 
-  // URL 해시에서 참여 정보 파싱: #join=<base64>
-  // 반환값: { firebaseConfig, roomCode, role }  | null (해시 없음) | { error: "..." } (있지만 파싱 실패)
+  // URL 해시에서 참여 정보 파싱
+  //   #join=<base64>   → 보기 전용
+  //   #admin=<base64>  → 관리자 권한 (수신 측에서 확인 후 적용)
+  // 반환값: { firebaseConfig, roomCode, role, isAdminGrant } | null | { error: "..." }
   function parseJoinHash() {
     if (!location.hash || location.hash.length < 7) return null;
-    if (!location.hash.startsWith("#join=")) return null;
+    let prefix = null, isAdminGrant = false;
+    if (location.hash.startsWith("#join=")) prefix = "#join=";
+    else if (location.hash.startsWith("#admin=")) { prefix = "#admin="; isAdminGrant = true; }
+    else return null;
     try {
-      const raw = decodeURIComponent(location.hash.slice(6));
-      if (!raw) return { error: "URL의 #join= 뒤에 데이터가 비어 있습니다." };
-      // base64 padding 보정
+      const raw = decodeURIComponent(location.hash.slice(prefix.length));
+      if (!raw) return { error: "URL의 데이터가 비어 있습니다." };
       let padded = raw;
       const pad = padded.length % 4;
       if (pad) padded += "=".repeat(4 - pad);
@@ -1299,7 +1303,12 @@
       if (!data.fc.apiKey || !data.fc.databaseURL) {
         return { error: "Firebase 설정이 손상되었습니다 (apiKey/databaseURL 누락)." };
       }
-      return { firebaseConfig: data.fc, roomCode: data.rc, role: "viewer" };
+      return {
+        firebaseConfig: data.fc,
+        roomCode: data.rc,
+        role: isAdminGrant ? "admin" : "viewer",
+        isAdminGrant
+      };
     } catch(e) {
       console.warn("[Sync] join 파싱 실패", e);
       return { error: "URL 해독 실패: " + (e.message || e) + " — 메신저가 URL을 잘랐을 수 있습니다." };
@@ -1315,6 +1324,16 @@
     return location.origin + location.pathname + "#join=" + encodeURIComponent(payload);
   }
 
+  // 관리자 권한 부여 URL — 받는 기기에서 확인 후 admin 역할로 자동 설정
+  function generateAdminURL() {
+    if (!syncCfg) return null;
+    const payload = btoa(JSON.stringify({
+      fc: syncCfg.firebaseConfig,
+      rc: syncCfg.roomCode
+    }));
+    return location.origin + location.pathname + "#admin=" + encodeURIComponent(payload);
+  }
+
   function generateRoomCode() {
     const adjectives = ["BLUE","DEEP","FOAM","WAVE","TIDE","REEF","CORAL","KELP"];
     const a = adjectives[Math.floor(Math.random()*adjectives.length)];
@@ -1326,9 +1345,36 @@
   (function initFromURL() {
     const join = parseJoinHash();
     if (join && !join.error) {
-      saveSyncCfg(join);
-      // 보기 전용으로 자동 연결
-      setTimeout(connectFirebase, 50);
+      if (join.isAdminGrant) {
+        // 관리자 권한 부여 URL — 받은 사람에게 확인
+        setTimeout(() => {
+          const ok = confirm(
+            "🔑 관리자 권한 접속 링크를 받았습니다.\n\n" +
+            "방 코드: " + join.roomCode + "\n" +
+            "Firebase: " + (join.firebaseConfig.projectId || "—") + "\n\n" +
+            "관리자 권한으로 접속하시겠습니까?\n" +
+            "(취소하면 보기 전용 모드로 접속됩니다)"
+          );
+          const finalRole = ok ? "admin" : "viewer";
+          saveSyncCfg({
+            firebaseConfig: join.firebaseConfig,
+            roomCode: join.roomCode,
+            role: finalRole
+          });
+          // URL 해시 정리 (다시 새로고침해도 동일하게 동작하도록 그냥 유지하거나, 보안상 제거)
+          // 관리자 URL이 그대로 남아있으면 다음에 또 묻게 되므로 제거하고 #join 형태로 변경
+          history.replaceState(null, "", location.pathname + location.search +
+            "#join=" + encodeURIComponent(btoa(JSON.stringify({
+              fc: join.firebaseConfig,
+              rc: join.roomCode
+            }))));
+          connectFirebase();
+          toast(finalRole === "admin" ? "관리자 권한으로 접속" : "보기 전용으로 접속");
+        }, 200);
+      } else {
+        saveSyncCfg(join);
+        setTimeout(connectFirebase, 50);
+      }
     } else if (join && join.error) {
       // URL이 깨졌거나 잘렸음 — 사용자에게 안내
       setSyncStatus("err", "공유 URL 손상");
@@ -1980,6 +2026,7 @@
     if (isConnected && isAdmin) {
       // ===== 연결된 관리자 화면 =====
       const shareURL = generateShareURL();
+      const adminURL = generateAdminURL();
       const dataReceivedHint = syncStats.initialDataReceived
         ? "✓ Firebase와 양방향 통신 정상"
         : "⏳ Firebase 응답 대기 중";
@@ -1991,16 +2038,34 @@
         </div>
 
         <div class="data-section">
-          <h4>📲 다른 기기에 보여주기</h4>
-          <p>아래 QR 코드를 학생용 디스플레이/태블릿/스마트폰으로 스캔하거나, URL을 공유하세요. 보기 전용 모드로 자동 접속됩니다.</p>
+          <h4>📲 학생 · 보기 기기에 공유 (보기 전용)</h4>
+          <p>QR 코드 스캔 또는 URL 공유 → 자동으로 <b>보기 전용 모드</b>로 접속됩니다. 점수 입력은 불가능.</p>
           <div class="qr-box"><canvas id="qrCanvas"></canvas></div>
           <div class="share-url" id="shareURLBox">${shareURL}</div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn" id="copyURLBtn">🔗 URL 복사</button>
+            <button class="btn" id="copyURLBtn">🔗 보기 URL 복사</button>
             <button class="btn ghost" id="openNewBtn">↗️ 새 창에서 미리보기</button>
           </div>
-          <p style="margin-top:10px; font-size:11px; color:rgba(255,255,255,0.55); line-height:1.5;">
-            ⚠️ <b>주의</b>: 카카오톡·문자 등 일부 메신저는 URL을 잘라서 보낼 수 있습니다. 학생이 접속해도 점수가 안 보인다면 URL 끝의 <code>#join=...</code> 부분이 포함됐는지 확인해주세요. 또는 QR 코드 스캔 방식이 가장 안전합니다.
+        </div>
+
+        <div class="data-section" style="border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.04);">
+          <h4>🔑 다른 교사 휴대폰을 관리자로 만들기</h4>
+          <p>아래 <b>관리자 URL</b>을 신뢰할 수 있는 교사에게만 전송하세요. 받은 기기는 확인 다이얼로그를 거쳐 <b>관리자 권한</b>으로 자동 설정됩니다(여전히 비밀번호 입력 필요). 휴대폰에서 점수를 입력하는 용도에 적합합니다.</p>
+          <div class="qr-box" style="background:#fff8e1;"><canvas id="qrAdminCanvas"></canvas></div>
+          <div class="share-url" id="adminURLBox">${adminURL}</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" id="copyAdminURLBtn" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color:#3a2406;">🔑 관리자 URL 복사</button>
+            <button class="btn ghost" id="openAdminNewBtn">↗️ 새 창에서 미리보기</button>
+          </div>
+          <p style="margin-top:10px; font-size:12px; color:rgba(255,255,255,0.7); line-height:1.6;">
+            ⚠️ <b>보안 주의</b>: 이 URL은 관리자 권한을 부여합니다. 절대 학생·외부인에게 공유하지 마세요. 교사 간 카카오톡 1:1 메시지 등으로만 전달하세요. 받은 사람은 비밀번호 입력 후에야 실제로 점수 입력이 가능합니다.
+          </p>
+        </div>
+
+        <div class="data-section">
+          <h4>⚠️ 공유 시 유의 사항</h4>
+          <p style="font-size:12px; line-height:1.6;">
+            카카오톡·문자 등 일부 메신저는 긴 URL을 잘라서 보낼 수 있습니다. URL 끝의 <code>#join=...</code> 또는 <code>#admin=...</code> 부분이 포함됐는지 반드시 확인해주세요. 가장 안전한 방법은 <b>QR 코드 스캔</b>입니다.
           </p>
         </div>
 
@@ -2085,29 +2150,43 @@
 
     // 연결됨 — 관리자 화면
     if (isConnected && isAdmin) {
-      // QR 코드 그리기
+      const viewerURL = generateShareURL();
+      const adminURL = generateAdminURL();
+
+      // QR 코드 그리기 (보기 전용)
       const canvas = document.getElementById("qrCanvas");
-      const url = generateShareURL();
       if (canvas && window.QRCode) {
-        window.QRCode.toCanvas(canvas, url, { width: 220, margin: 1, color: { dark: "#0a2540", light: "#ffffff" } }, err => {
+        window.QRCode.toCanvas(canvas, viewerURL, { width: 220, margin: 1, color: { dark: "#0a2540", light: "#ffffff" } }, err => {
           if (err) console.warn("QR error", err);
         });
       }
-      document.getElementById("copyURLBtn")?.addEventListener("click", async () => {
+      // QR 코드 그리기 (관리자 URL — 황금색 톤)
+      const adminCanvas = document.getElementById("qrAdminCanvas");
+      if (adminCanvas && window.QRCode) {
+        window.QRCode.toCanvas(adminCanvas, adminURL, { width: 220, margin: 1, color: { dark: "#7c2d12", light: "#fff8e1" } }, err => {
+          if (err) console.warn("QR admin error", err);
+        });
+      }
+
+      const copyText = async (text, msg) => {
         try {
-          await navigator.clipboard.writeText(url);
-          toast("공유 URL을 복사했습니다");
+          await navigator.clipboard.writeText(text);
+          toast(msg);
         } catch(e) {
-          // fallback
           const ta = document.createElement("textarea");
-          ta.value = url; document.body.appendChild(ta);
+          ta.value = text; document.body.appendChild(ta);
           ta.select(); document.execCommand("copy"); ta.remove();
-          toast("공유 URL을 복사했습니다");
+          toast(msg);
         }
+      };
+
+      document.getElementById("copyURLBtn")?.addEventListener("click", () => copyText(viewerURL, "보기 URL을 복사했습니다"));
+      document.getElementById("openNewBtn")?.addEventListener("click", () => window.open(viewerURL, "_blank"));
+      document.getElementById("copyAdminURLBtn")?.addEventListener("click", () => {
+        if (!confirm("⚠️ 관리자 URL은 점수 입력 권한을 부여합니다.\n신뢰할 수 있는 교사에게만 전송하세요. 계속할까요?")) return;
+        copyText(adminURL, "관리자 URL을 복사했습니다");
       });
-      document.getElementById("openNewBtn")?.addEventListener("click", () => {
-        window.open(url, "_blank");
-      });
+      document.getElementById("openAdminNewBtn")?.addEventListener("click", () => window.open(adminURL, "_blank"));
       document.getElementById("disconnectBtn")?.addEventListener("click", () => {
         if (!confirm("실시간 동기화를 중단할까요? 다른 기기는 더 이상 업데이트를 받지 못합니다.")) return;
         disconnectFirebase();
