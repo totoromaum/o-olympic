@@ -10,8 +10,8 @@
 <script type="module">
   // Firebase Realtime Database (실시간 다중 기기 동기화)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue, off, goOffline, goOnline, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  window.__FB = { initializeApp, getDatabase, ref, set, onValue, off, goOffline, goOnline, onDisconnect };
+  import { getDatabase, ref, set, get, onValue, off, goOffline, goOnline, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  window.__FB = { initializeApp, getDatabase, ref, set, get, onValue, off, goOffline, goOnline, onDisconnect };
   window.dispatchEvent(new Event("firebase-ready"));
 </script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
@@ -393,65 +393,108 @@
     gap: 16px;
   }
   .event-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03));
-    border: 1px solid var(--c-border);
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: var(--r-md);
-    padding: 18px 20px;
+    padding: 22px 22px 20px;
     backdrop-filter: blur(20px);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   .event-card-head {
     display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
   }
   .event-name {
-    font-size: 18px;
-    font-weight: 800;
+    font-size: 21px;
+    font-weight: 900;
     color: #ffffff;
     letter-spacing: -0.02em;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
   }
   .event-meta {
+    display: inline-block;
     font-size: 12px;
-    color: rgba(255,255,255,0.75);
-    letter-spacing: 0.05em;
-    margin-top: 4px;
-    font-weight: 500;
+    color: #4dd0e1;
+    letter-spacing: 0.04em;
+    margin-top: 8px;
+    font-weight: 700;
+    background: rgba(77,208,225,0.15);
+    padding: 4px 12px;
+    border-radius: 100px;
+    border: 1px solid rgba(77,208,225,0.4);
   }
-  .event-list { display: flex; flex-direction: column; gap: 4px; }
+  .event-list { display: flex; flex-direction: column; gap: 7px; }
   .event-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; border-radius: 8px;
-    font-size: 14px;
-    transition: background 0.2s;
+    padding: 12px 16px;
+    border-radius: 10px;
+    /* 진한 네이비 반투명 배경으로 흰 글자가 또렷하게 보이도록 */
+    background: linear-gradient(90deg, rgba(6,24,43,0.55), rgba(10,37,64,0.45));
+    border: 1px solid rgba(255,255,255,0.12);
+    transition: background 0.2s, transform 0.15s, border-color 0.2s;
   }
-  .event-row:hover { background: rgba(255,255,255,0.08); }
-  .event-row.no { opacity: 0.5; }
-  .event-row.no .nm { color: rgba(255,255,255,0.65); }
-  .event-row .left { display: flex; align-items: center; gap: 10px; }
+  .event-row:hover {
+    background: linear-gradient(90deg, rgba(10,37,64,0.7), rgba(14,60,107,0.6));
+    border-color: rgba(77,208,225,0.4);
+    transform: translateX(2px);
+  }
+  .event-row.no {
+    opacity: 1;
+    background: rgba(6,24,43,0.3);
+    border-style: dashed;
+    border-color: rgba(255,255,255,0.08);
+  }
+  .event-row.no .nm { color: rgba(255,255,255,0.65); font-weight: 600; }
+  .event-row.no .pt { color: rgba(255,255,255,0.4); font-weight: 600; }
+  .event-row.r1 {
+    background: linear-gradient(90deg, rgba(251,191,36,0.25), rgba(245,158,11,0.15));
+    border-color: rgba(251,191,36,0.5);
+  }
+  .event-row.r2 {
+    background: linear-gradient(90deg, rgba(203,213,225,0.22), rgba(148,163,184,0.12));
+    border-color: rgba(203,213,225,0.5);
+  }
+  .event-row.r3 {
+    background: linear-gradient(90deg, rgba(217,119,6,0.22), rgba(180,83,9,0.12));
+    border-color: rgba(217,119,6,0.5);
+  }
+  .event-row .left { display: flex; align-items: center; gap: 14px; }
   .event-row .rk {
     display: inline-flex; align-items: center; justify-content: center;
-    min-width: 24px; height: 24px; border-radius: 6px;
-    font-size: 12px; font-weight: 700;
-    background: rgba(255,255,255,0.15);
+    min-width: 32px; height: 32px; border-radius: 9px;
+    font-size: 14px; font-weight: 900;
+    background: rgba(255,255,255,0.22);
     color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    letter-spacing: -0.02em;
   }
-  .event-row.r1 .rk { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #422a02; }
-  .event-row.r2 .rk { background: linear-gradient(135deg, #e2e8f0, #94a3b8); color: #1e293b; }
-  .event-row.r3 .rk { background: linear-gradient(135deg, #fbbf24, #d97706); color: #422a02; }
+  .event-row.r1 .rk { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #3a2406; text-shadow: none; box-shadow: 0 4px 14px -2px rgba(251,191,36,0.6); }
+  .event-row.r2 .rk { background: linear-gradient(135deg, #f1f5f9, #94a3b8); color: #0f172a; text-shadow: none; box-shadow: 0 4px 14px -2px rgba(203,213,225,0.5); }
+  .event-row.r3 .rk { background: linear-gradient(135deg, #fbbf24, #d97706); color: #3a2406; text-shadow: none; box-shadow: 0 4px 14px -2px rgba(217,119,6,0.6); }
   .event-row .nm {
     color: #ffffff;
-    font-weight: 600;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
-    letter-spacing: -0.01em;
+    font-weight: 800;
+    font-size: 18px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    letter-spacing: -0.02em;
   }
   .event-row .pt {
-    color: #4dd0e1;
-    font-weight: 700;
+    color: #a5f3fc;
+    font-weight: 900;
+    font-size: 18px;
     font-variant-numeric: tabular-nums;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.55);
+    letter-spacing: -0.02em;
   }
+  .event-row.r1 .nm { color: #fffbeb; text-shadow: 0 2px 4px rgba(120,53,15,0.6); }
+  .event-row.r1 .pt { color: #fef3c7; text-shadow: 0 2px 4px rgba(120,53,15,0.6); }
+  .event-row.r2 .nm { color: #ffffff; }
+  .event-row.r2 .pt { color: #f8fafc; }
+  .event-row.r3 .nm { color: #fff7ed; text-shadow: 0 2px 4px rgba(120,53,15,0.6); }
+  .event-row.r3 .pt { color: #fed7aa; text-shadow: 0 2px 4px rgba(120,53,15,0.6); }
 
   /* ============================= 플로팅 버튼 ============================= */
   .fab {
@@ -995,6 +1038,46 @@
   let syncStatus = "off";    // off | ing | ok | err
   let suppressPush = false;  // 원격 변경을 받아 적용했을 때 다시 푸시하지 않음
 
+  // 진단/모니터링 카운터
+  const syncStats = {
+    pushCount: 0,
+    receiveCount: 0,
+    lastPushAt: null,
+    lastReceiveAt: null,
+    lastError: null,
+    connectedAt: null,
+    initialDataReceived: false
+  };
+
+  // Firebase 데이터를 우리 state 형태로 정규화
+  //  - Firebase RTDB는 정수 키 객체를 가끔 배열로 변환 → 객체로 되돌림
+  //  - 누락된 노드는 빈 객체로 보정
+  function normalizeFromFB(value) {
+    if (value == null) return {};
+    if (Array.isArray(value)) {
+      const obj = {};
+      value.forEach((v, i) => { if (v != null) obj[i] = v; });
+      return obj;
+    }
+    if (typeof value === "object") return value;
+    return {};
+  }
+
+  // 원격 데이터를 우리 state로 변환 (배열 변환 케이스 대응)
+  function applyRemoteData(data) {
+    const base = blankState();
+    const remoteScores = normalizeFromFB(data?.scores);
+    EVENTS.forEach(ev => {
+      const evData = normalizeFromFB(remoteScores[ev.id]);
+      ev.grades.forEach(g => {
+        const gradeData = normalizeFromFB(evData[g]);
+        base.scores[ev.id][g] = gradeData;
+      });
+    });
+    base.updatedAt = data?.updatedAt || null;
+    return base;
+  }
+
   function getSyncCfg() { return syncCfg; }
 
   function saveSyncCfg(cfg) {
@@ -1061,43 +1144,65 @@
       // 점수 데이터만 별도 경로(_data)로 다루어 _meta(비밀번호 해시 등)와 분리
       const dataRef = window.__FB.ref(fbDb, `rooms/${syncCfg.roomCode}/_data`);
       fbRef = dataRef; // pushToFirebase에서 이 ref를 사용
+      syncStats.connectedAt = new Date().toISOString();
+
+      const okLabel = () => `실시간 동기 · ${syncCfg.roomCode} (${syncCfg.role==="admin"?"관리자":"보기"})`;
 
       fbUnsub = window.__FB.onValue(dataRef, snap => {
         const data = snap.val();
+        syncStats.receiveCount += 1;
+        syncStats.lastReceiveAt = new Date().toISOString();
+        console.log(`[Sync] 📥 데이터 수신 #${syncStats.receiveCount}`, data);
+
         if (!data) {
-          // 빈 방 - 관리자라면 현재 상태 푸시
+          // 빈 방
           if (syncCfg.role === "admin") {
+            // 관리자: 첫 연결이면 현재 로컬 상태 푸시
+            console.log("[Sync] 빈 방 감지 — 관리자가 초기 데이터 푸시");
             pushToFirebase(true);
+          } else {
+            console.warn("[Sync] ⚠️ 빈 방 — 보기 전용 모드. 관리자 측 데이터가 아직 푸시되지 않음.");
           }
-          setSyncStatus("ok", `실시간 동기 · ${syncCfg.roomCode} (${syncCfg.role==="admin"?"관리자":"보기"})`);
+          syncStats.initialDataReceived = true;
+          setSyncStatus("ok", okLabel());
           return;
         }
-        // 자신의 푸시 echo 무시
+
+        // 자신의 푸시 echo 무시 (같은 updatedAt이면 자기 자신의 변경)
         if (data.updatedAt && data.updatedAt === state.updatedAt) {
-          setSyncStatus("ok", `실시간 동기 · ${syncCfg.roomCode} (${syncCfg.role==="admin"?"관리자":"보기"})`);
+          console.log("[Sync] 자신의 echo — 무시");
+          syncStats.initialDataReceived = true;
+          setSyncStatus("ok", okLabel());
           return;
         }
-        // 원격 데이터 적용
+
+        // 원격 데이터 적용 (정규화 포함)
         suppressPush = true;
-        // 안전 보정
-        const base = blankState();
-        EVENTS.forEach(ev => {
-          if (data.scores && data.scores[ev.id]) {
-            ev.grades.forEach(g => {
-              base.scores[ev.id][g] = data.scores[ev.id][g] || {};
-            });
-          }
-        });
-        base.updatedAt = data.updatedAt;
+        const base = applyRemoteData(data);
         state = base;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         renderAll();
-        setSyncStatus("ok", `실시간 동기 · ${syncCfg.roomCode} (${syncCfg.role==="admin"?"관리자":"보기"})`);
+        syncStats.initialDataReceived = true;
+        setSyncStatus("ok", okLabel());
         suppressPush = false;
+        console.log(`[Sync] ✅ 원격 데이터 적용 완료 (updatedAt: ${data.updatedAt})`);
       }, err => {
-        console.error("Firebase listen error", err);
-        setSyncStatus("err", "연결 오류 — 설정 확인");
+        console.error("[Sync] ❌ 리스너 오류", err);
+        syncStats.lastError = err?.message || String(err);
+        const msg = err?.code === "PERMISSION_DENIED" || /permission/i.test(err?.message || "")
+          ? "권한 거부 — Firebase 규칙 확인 필요"
+          : "연결 오류 — F12 콘솔 확인";
+        setSyncStatus("err", msg);
+        toast(msg, "danger");
       });
+
+      // 하트비트: 연결 후 15초가 지나도 데이터 수신이 없으면 경고
+      setTimeout(() => {
+        if (syncStatus === "ok" && !syncStats.initialDataReceived) {
+          console.warn("[Sync] ⚠️ 15초 경과 — Firebase에서 응답 없음");
+          toast("Firebase 응답 없음 — 규칙/네트워크 확인", "danger");
+        }
+      }, 15000);
     } catch (e) {
       console.error("Firebase init failed", e);
       setSyncStatus("err", "연결 오류 — 설정 확인");
@@ -1105,16 +1210,65 @@
   }
 
   function pushToFirebase(force) {
-    if (!fbRef || !syncCfg) return;
-    if (suppressPush && !force) return;
-    if (syncCfg.role !== "admin") return; // 보기 전용은 푸시 안 함
+    if (!fbRef || !syncCfg) {
+      console.warn("[Sync] 푸시 시도했으나 연결 없음", { fbRef: !!fbRef, syncCfg: !!syncCfg });
+      return;
+    }
+    if (suppressPush && !force) {
+      console.log("[Sync] suppressPush=true — 푸시 생략");
+      return;
+    }
+    if (syncCfg.role !== "admin") {
+      console.warn("[Sync] 보기 전용 역할 — 푸시 차단");
+      return;
+    }
     try {
-      window.__FB.set(fbRef, state).catch(e => {
-        console.error("Push fail", e);
-        setSyncStatus("err", "쓰기 실패 — 규칙 확인");
+      syncStats.pushCount += 1;
+      syncStats.lastPushAt = new Date().toISOString();
+      console.log(`[Sync] 📤 푸시 #${syncStats.pushCount}`, { updatedAt: state.updatedAt });
+      window.__FB.set(fbRef, state).then(() => {
+        console.log(`[Sync] ✅ 푸시 #${syncStats.pushCount} 완료`);
+      }).catch(e => {
+        console.error("[Sync] ❌ 푸시 실패", e);
+        syncStats.lastError = e?.message || String(e);
+        const msg = e?.code === "PERMISSION_DENIED" || /permission/i.test(e?.message || "")
+          ? "쓰기 권한 거부 — Firebase 규칙 확인"
+          : "쓰기 실패 — F12 콘솔 확인";
+        setSyncStatus("err", msg);
+        toast(msg, "danger");
       });
     } catch (e) {
-      console.error("Push exception", e);
+      console.error("[Sync] ❌ 푸시 예외", e);
+      syncStats.lastError = e?.message || String(e);
+    }
+  }
+
+  // 원격에서 데이터 강제로 다시 가져오기 (보기 전용용)
+  async function forcePullFromFirebase() {
+    if (!fbRef || !syncCfg) {
+      toast("Firebase 연결 없음", "danger");
+      return;
+    }
+    try {
+      const snap = await (window.__FB.get
+        ? window.__FB.get(fbRef)
+        : new Promise((res, rej) => {
+            const off = window.__FB.onValue(fbRef, s => { off(); res(s); }, rej);
+          }));
+      const data = snap.val();
+      if (!data) {
+        toast("방에 데이터 없음 (관리자가 아직 점수 미입력)", "danger");
+        return;
+      }
+      suppressPush = true;
+      state = applyRemoteData(data);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+      suppressPush = false;
+      toast("최신 데이터 받아옴");
+    } catch (e) {
+      console.error("[Sync] forcePull 실패", e);
+      toast("가져오기 실패: " + (e.message || e), "danger");
     }
   }
 
@@ -1126,14 +1280,30 @@
   }
 
   // URL 해시에서 참여 정보 파싱: #join=<base64>
+  // 반환값: { firebaseConfig, roomCode, role }  | null (해시 없음) | { error: "..." } (있지만 파싱 실패)
   function parseJoinHash() {
+    if (!location.hash || location.hash.length < 7) return null;
     if (!location.hash.startsWith("#join=")) return null;
     try {
       const raw = decodeURIComponent(location.hash.slice(6));
-      const data = JSON.parse(atob(raw));
-      if (data.fc && data.rc) return { firebaseConfig: data.fc, roomCode: data.rc, role: "viewer" };
-    } catch(e) { console.warn("join parse failed", e); }
-    return null;
+      if (!raw) return { error: "URL의 #join= 뒤에 데이터가 비어 있습니다." };
+      // base64 padding 보정
+      let padded = raw;
+      const pad = padded.length % 4;
+      if (pad) padded += "=".repeat(4 - pad);
+      const decoded = atob(padded);
+      const data = JSON.parse(decoded);
+      if (!data.fc || !data.rc) {
+        return { error: "URL이 잘려서 도착했습니다. 다시 받아주세요." };
+      }
+      if (!data.fc.apiKey || !data.fc.databaseURL) {
+        return { error: "Firebase 설정이 손상되었습니다 (apiKey/databaseURL 누락)." };
+      }
+      return { firebaseConfig: data.fc, roomCode: data.rc, role: "viewer" };
+    } catch(e) {
+      console.warn("[Sync] join 파싱 실패", e);
+      return { error: "URL 해독 실패: " + (e.message || e) + " — 메신저가 URL을 잘랐을 수 있습니다." };
+    }
   }
 
   function generateShareURL() {
@@ -1155,10 +1325,26 @@
   // 초기 진입 시 URL 해시 확인
   (function initFromURL() {
     const join = parseJoinHash();
-    if (join) {
+    if (join && !join.error) {
       saveSyncCfg(join);
       // 보기 전용으로 자동 연결
       setTimeout(connectFirebase, 50);
+    } else if (join && join.error) {
+      // URL이 깨졌거나 잘렸음 — 사용자에게 안내
+      setSyncStatus("err", "공유 URL 손상");
+      setTimeout(() => {
+        if (confirm(
+          "공유 URL 처리 실패:\n\n" + join.error + "\n\n" +
+          "원인: 카카오톡·문자·이메일 등이 긴 URL을 자르면서 발생할 수 있습니다.\n\n" +
+          "해결: 관리자에게 다시 받되, 다음 방법 중 하나를 사용하세요:\n" +
+          "  ① QR 코드 스캔 (가장 안전)\n" +
+          "  ② URL 전체를 그대로 복사·붙여넣기\n\n" +
+          "확인을 누르면 단일 기기 모드로 진행합니다."
+        )) {
+          location.hash = ""; // 잘못된 해시 제거
+          location.reload();
+        }
+      }, 300);
     } else if (syncCfg) {
       // 이전에 저장된 설정으로 자동 연결
       setTimeout(connectFirebase, 50);
@@ -1764,13 +1950,43 @@
 
     let html = "";
 
+    // 진단 패널 HTML 생성기
+    const diagPanel = () => {
+      const proj = cfg?.firebaseConfig?.projectId || "—";
+      const dbURL = cfg?.firebaseConfig?.databaseURL || "—";
+      const fmt = (iso) => iso ? new Date(iso).toLocaleTimeString("ko-KR") : "—";
+      return `
+        <div class="data-section" style="background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.15);">
+          <h4>🔍 동기화 진단</h4>
+          <p style="font-size:12px; font-family:monospace; line-height:1.9; color:rgba(255,255,255,0.85);">
+            <b>방 코드:</b> ${cfg?.roomCode || "—"}<br>
+            <b>역할:</b> ${cfg?.role === "admin" ? "관리자 (쓰기 가능)" : "보기 전용"}<br>
+            <b>Firebase 프로젝트:</b> ${proj}<br>
+            <b>DB URL:</b> <span style="word-break:break-all; font-size:11px;">${dbURL}</span><br>
+            <b>연결 시각:</b> ${fmt(syncStats.connectedAt)}<br>
+            <b>마지막 푸시:</b> ${fmt(syncStats.lastPushAt)} (총 ${syncStats.pushCount}회)<br>
+            <b>마지막 수신:</b> ${fmt(syncStats.lastReceiveAt)} (총 ${syncStats.receiveCount}회)<br>
+            <b>최근 오류:</b> <span style="color:${syncStats.lastError ? "#fca5a5" : "#86efac"};">${syncStats.lastError || "없음"}</span>
+          </p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+            <button class="btn ghost" id="diagRefreshBtn">🔄 진단 새로고침</button>
+            <button class="btn ghost" id="diagPullBtn">📥 최신 데이터 받기</button>
+            ${cfg?.role === "admin" ? '<button class="btn ghost" id="diagPushBtn">📤 강제 푸시</button>' : ""}
+          </div>
+        </div>
+      `;
+    };
+
     if (isConnected && isAdmin) {
       // ===== 연결된 관리자 화면 =====
       const shareURL = generateShareURL();
+      const dataReceivedHint = syncStats.initialDataReceived
+        ? "✓ Firebase와 양방향 통신 정상"
+        : "⏳ Firebase 응답 대기 중";
       html += `
         <div class="helper" style="background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3);">
           <b style="color:#86efac;">✅ 실시간 동기화 활성화됨</b><br>
-          방 코드: <b>${cfg.roomCode}</b> · 역할: 관리자<br>
+          방 코드: <b>${cfg.roomCode}</b> · 역할: 관리자 · ${dataReceivedHint}<br>
           이 기기에서 입력한 점수가 모든 보기 기기에 실시간으로 반영됩니다.
         </div>
 
@@ -1783,7 +1999,12 @@
             <button class="btn" id="copyURLBtn">🔗 URL 복사</button>
             <button class="btn ghost" id="openNewBtn">↗️ 새 창에서 미리보기</button>
           </div>
+          <p style="margin-top:10px; font-size:11px; color:rgba(255,255,255,0.55); line-height:1.5;">
+            ⚠️ <b>주의</b>: 카카오톡·문자 등 일부 메신저는 URL을 잘라서 보낼 수 있습니다. 학생이 접속해도 점수가 안 보인다면 URL 끝의 <code>#join=...</code> 부분이 포함됐는지 확인해주세요. 또는 QR 코드 스캔 방식이 가장 안전합니다.
+          </p>
         </div>
+
+        ${diagPanel()}
 
         <div class="data-section">
           <h4>⛓️ 연결 해제</h4>
@@ -1793,11 +2014,17 @@
       `;
     } else if (isConnected && !isAdmin) {
       // ===== 보기 전용으로 접속됨 =====
+      const dataReceivedHint = syncStats.initialDataReceived
+        ? "✓ 관리자 데이터 수신 중"
+        : "⏳ 데이터 대기 중 — 관리자가 점수를 입력하면 자동 표시";
       html += `
         <div class="helper" style="background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3);">
           <b style="color:#86efac;">✅ 보기 전용 모드로 접속됨</b><br>
-          방 코드: <b>${cfg.roomCode}</b> · 관리자가 점수를 입력하면 자동으로 반영됩니다.
+          방 코드: <b>${cfg.roomCode}</b> · ${dataReceivedHint}
         </div>
+
+        ${diagPanel()}
+
         <div class="data-section">
           <h4>⛓️ 연결 해제</h4>
           <p>이 기기에서 보기 전용 연결을 끊습니다.</p>
@@ -1894,6 +2121,28 @@
         disconnectFirebase();
         toast("연결을 해제했습니다");
         renderAdminContent();
+      });
+    }
+
+    // 진단 패널 버튼 (관리자/뷰어 공통)
+    if (isConnected) {
+      document.getElementById("diagRefreshBtn")?.addEventListener("click", () => {
+        renderAdminContent();
+        toast("진단 정보 갱신");
+      });
+      document.getElementById("diagPullBtn")?.addEventListener("click", async () => {
+        const btn = document.getElementById("diagPullBtn");
+        btn.disabled = true;
+        await forcePullFromFirebase();
+        btn.disabled = false;
+        renderAdminContent();
+      });
+      document.getElementById("diagPushBtn")?.addEventListener("click", () => {
+        state.updatedAt = new Date().toISOString();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        pushToFirebase(true);
+        toast("강제 푸시 실행");
+        setTimeout(() => renderAdminContent(), 600);
       });
     }
 
